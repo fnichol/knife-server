@@ -1,5 +1,6 @@
 require 'chef/knife/server_bootstrap_ec2'
 require 'chef/knife/ec2_server_create'
+require 'fog'
 
 describe Chef::Knife::ServerBootstrapEc2 do
   before do
@@ -11,6 +12,8 @@ describe Chef::Knife::ServerBootstrapEc2 do
     @knife.ui.stub!(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
   end
+
+  let(:connection) { mock(Fog::Compute::AWS) }
 
   describe "#ec2_bootstrap" do
     before do
@@ -78,6 +81,28 @@ describe Chef::Knife::ServerBootstrapEc2 do
       @knife.config[:platform] = "freebsd"
 
       bootstrap.config[:distro].should eq("chef-server-freebsd")
+    end
+  end
+
+  describe "#ec2_connection" do
+    before do
+      Chef::Config[:_spec_knife] = Chef::Config[:knife].dup
+      Chef::Config[:knife][:aws_access_key_id] = "key"
+      Chef::Config[:knife][:aws_secret_access_key] = "secret"
+    end
+
+    after do
+      Chef::Config[:knife] = Chef::Config.delete(:_spec_knife)
+    end
+
+    it "constructs a connection" do
+      Fog::Compute.should_receive(:new).with({
+        :provider => 'AWS',
+        :aws_access_key_id => "key",
+        :aws_secret_access_key => "secret"
+      })
+
+      @knife.ec2_connection
     end
   end
 

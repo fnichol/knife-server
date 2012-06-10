@@ -6,6 +6,7 @@ class Chef
 
       deps do
         require 'chef/knife/ec2_server_create'
+        require 'fog'
         Chef::Knife::Ec2ServerCreate.load_deps
       end
 
@@ -140,6 +141,14 @@ class Chef
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap
+      end
+
+      def ec2_connection
+        @ec2_connection ||= Fog::Compute.new(
+          :provider => 'AWS',
+          :aws_access_key_id => Chef::Config[:knife][:aws_access_key_id],
+          :aws_secret_access_key => Chef::Config[:knife][:aws_secret_access_key]
+        )
       end
 
       private
