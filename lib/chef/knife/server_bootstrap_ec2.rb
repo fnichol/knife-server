@@ -156,7 +156,8 @@ class Chef
 
       def server_dns_name
         server = ec2_connection.servers.find do |s|
-          s.tags['Name'] == config[:chef_node_name] &&
+          s.state == "running" &&
+            s.tags['Name'] == config[:chef_node_name] &&
             s.tags['Role'] == 'chef_server'
         end
 

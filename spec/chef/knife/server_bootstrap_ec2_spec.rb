@@ -120,12 +120,17 @@ describe Chef::Knife::ServerBootstrapEc2 do
       end
 
       let(:server) do
-        stub(:dns_name => 'blahblah.aws.compute.com',
+        stub(:dns_name => 'blahblah.aws.compute.com', :state => "running",
           :tags => {'Name' => 'shavemy.yak', 'Role' => 'chef_server'})
       end
 
       it "returns the provisioned dns name" do
         @knife.server_dns_name.should eq('blahblah.aws.compute.com')
+      end
+
+      it "ignores terminated instances" do
+        server.stub(:state) { "terminated" }
+        @knife.server_dns_name.should be_nil
       end
     end
 
