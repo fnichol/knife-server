@@ -1,4 +1,4 @@
-# Knife::Server
+# Knife::Server [![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server)
 
 TODO: Write a gem description
 
