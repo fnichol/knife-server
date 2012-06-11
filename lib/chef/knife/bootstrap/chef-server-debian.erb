@@ -111,6 +111,14 @@ enable_ssl_proxy() {
   rm -rf $tmp_solo
 }
 
+create_root_client() {
+  knife configure --initial \
+    --server-url http://127.0.0.1:4000 \
+    --user root \
+    --repository '' \
+    --defaults --yes
+}
+
 setup
 set_hostname_for_${platform}
 add_opscode_apt_repo
