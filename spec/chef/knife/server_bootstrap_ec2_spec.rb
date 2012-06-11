@@ -1,6 +1,7 @@
 require 'chef/knife/server_bootstrap_ec2'
 require 'chef/knife/ec2_server_create'
 require 'fog'
+require 'net/ssh'
 
 describe Chef::Knife::ServerBootstrapEc2 do
   before do
@@ -142,6 +143,45 @@ describe Chef::Knife::ServerBootstrapEc2 do
       it "returns nil" do
         @knife.server_dns_name.should be_nil
       end
+    end
+  end
+
+  describe "#ssh" do
+    before do
+      @knife.config[:ssh_user] = "root"
+      @knife.config[:ssh_port] = "2222"
+      @knife.config[:identity_file] = "~/.ssh/my.key"
+      @knife.stub(:server_dns_name) { "crappa.com" }
+
+      Net::SSH.stub(:start).and_yield(ssh_connection)
+    end
+
+    let(:ssh_connection)  { stub("SSH connection").as_null_object }
+
+    it "sets up an SSH connection" do
+      Net::SSH.should_receive(:start).
+        with("crappa.com", "root", {:keys => "~/.ssh/my.key", :port => "2222"})
+
+      @knife.ssh "echo yep"
+    end
+
+    it "skips sudo if user is root" do
+      ssh_connection.should_receive(:exec!).with("echo yep")
+
+      @knife.ssh "echo yep"
+    end
+
+    it "skips sudo if user is root" do
+      @knife.config[:ssh_user] = "john"
+      ssh_connection.should_receive(:exec!).with("sudo echo yep")
+
+      @knife.ssh "echo yep"
+    end
+
+    it "returns the output of ssh.exec!" do
+      ssh_connection.stub(:exec!).with("echo yep") { "yep" }
+
+      @knife.ssh("echo yep").should eq("yep")
     end
   end
 
