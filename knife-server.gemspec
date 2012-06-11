@@ -16,6 +16,7 @@ Gem::Specification.new do |gem|
   gem.version       = Knife::Server::VERSION
 
   gem.add_dependency "fog",       "~> 1.3"
+  gem.add_dependency "net-ssh"
   gem.add_dependency "chef",      ">= 0.10.10"
   gem.add_dependency "knife-ec2", "~> 0.5.12"
 
