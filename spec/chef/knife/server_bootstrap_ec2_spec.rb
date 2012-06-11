@@ -89,6 +89,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
       Chef::Config[:_spec_knife] = Chef::Config[:knife].dup
       Chef::Config[:knife][:aws_access_key_id] = "key"
       Chef::Config[:knife][:aws_secret_access_key] = "secret"
+      Chef::Config[:knife][:region] = "hell-south-666"
     end
 
     after do
@@ -98,26 +99,73 @@ describe Chef::Knife::ServerBootstrapEc2 do
     it "constructs a connection" do
       Fog::Compute.should_receive(:new).with({
         :provider => 'AWS',
-        :aws_access_key_id => "key",
-        :aws_secret_access_key => "secret"
+        :aws_access_key_id => 'key',
+        :aws_secret_access_key => 'secret',
+        :region => 'hell-south-666'
       })
 
       @knife.ec2_connection
     end
   end
 
-  describe "#run" do
+  describe "#server_dns_name" do
     before do
-      Chef::Knife::Ec2ServerCreate.stub(:new) { bootstrap }
+      @knife.config[:chef_node_name] = 'shavemy.yak'
+      @knife.stub(:ec2_connection) { connection }
     end
 
-    let(:bootstrap) { stub(:run => true, :config => Hash.new) }
+    context "when server is found" do
+      before do
+        connection.stub(:servers) { [server] }
+      end
+
+      let(:server) do
+        stub(:dns_name => 'blahblah.aws.compute.com',
+          :tags => {'Name' => 'shavemy.yak', 'Role' => 'chef_server'})
+      end
+
+      it "returns the provisioned dns name" do
+        @knife.server_dns_name.should eq('blahblah.aws.compute.com')
+      end
+    end
+
+    context "when server is not found" do
+      before do
+        connection.stub(:servers) { [] }
+      end
+
+      it "returns nil" do
+        @knife.server_dns_name.should be_nil
+      end
+    end
+  end
+
+  describe "#run" do
+    before do
+      @knife.config[:security_groups] = ["mygroup"]
+      @knife.stub(:ec2_connection)  { connection }
+      Chef::Knife::Ec2ServerCreate.stub(:new) { bootstrap }
+      Knife::Server::Ec2SecurityGroup.stub(:new) { security_group }
+      security_group.stub(:configure_chef_server_group)
+    end
+
+    let(:bootstrap)       { stub(:run => true, :config => Hash.new) }
+    let(:security_group)  { stub }
 
     it "exits if node_name option is missing" do
       def @knife.exit(code) ; end
       @knife.config.delete(:chef_node_name)
 
       @knife.should_receive(:exit)
+      @knife.run
+    end
+
+    it "configures the ec2 security group" do
+      Knife::Server::Ec2SecurityGroup.should_receive(:new).
+        with(connection, @knife.ui)
+      security_group.should_receive(:configure_chef_server_group).
+        with('mygroup', :description => 'mygroup group')
+
       @knife.run
     end
 

@@ -1,4 +1,5 @@
 require 'chef/knife'
+require 'knife/server/ec2_security_group'
 
 class Chef
   class Knife
@@ -130,6 +131,7 @@ class Chef
 
       def run
         validate!
+        config_security_group
         ec2_bootstrap.run
       end
 
@@ -147,8 +149,18 @@ class Chef
         @ec2_connection ||= Fog::Compute.new(
           :provider => 'AWS',
           :aws_access_key_id => Chef::Config[:knife][:aws_access_key_id],
-          :aws_secret_access_key => Chef::Config[:knife][:aws_secret_access_key]
+          :aws_secret_access_key => Chef::Config[:knife][:aws_secret_access_key],
+          :region => Chef::Config[:knife][:region]
         )
+      end
+
+      def server_dns_name
+        server = ec2_connection.servers.find do |s|
+          s.tags['Name'] == config[:chef_node_name] &&
+            s.tags['Role'] == 'chef_server'
+        end
+
+        server && server.dns_name
       end
 
       private
@@ -158,6 +170,11 @@ class Chef
           ui.error "You did not provide a valid --node-name value."
           exit 1
         end
+      end
+
+      def config_security_group(name = config[:security_groups].first)
+        ::Knife::Server::Ec2SecurityGroup.new(ec2_connection, ui).
+          configure_chef_server_group(name, :description => "#{name} group")
       end
 
       def bootstrap_tags
