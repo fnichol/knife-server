@@ -165,17 +165,6 @@ class Chef
         server && server.dns_name
       end
 
-      def ssh(cmd)
-        full_cmd = config[:ssh_user] == "root" ? cmd : "sudo #{cmd}"
-        opts = {:keys => config[:identity_file], :port => config[:ssh_port]}
-
-        result = ""
-        Net::SSH.start(server_dns_name, config[:ssh_user], opts) do |ssh|
-          result = ssh.exec! full_cmd
-        end
-        result
-      end
-
       private
 
       def validate!
