@@ -21,4 +21,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency "knife-ec2", "~> 0.5.12"
 
   gem.add_development_dependency "rspec", "~> 2.10"
+  gem.add_development_dependency "fakefs", "~> 0.4.0"
 end

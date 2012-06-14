@@ -2,8 +2,11 @@ require 'chef/knife/server_bootstrap_ec2'
 require 'chef/knife/ec2_server_create'
 require 'fog'
 require 'net/ssh'
+require 'fakefs/spec_helpers'
 
 describe Chef::Knife::ServerBootstrapEc2 do
+  include FakeFS::SpecHelpers
+
   before do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerBootstrapEc2.new
