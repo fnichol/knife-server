@@ -152,14 +152,18 @@ describe Chef::Knife::ServerBootstrapEc2 do
   describe "#run" do
     before do
       @knife.config[:security_groups] = ["mygroup"]
+      @knife.config[:validation_key] = "/var/tmp/validation.pem"
       @knife.stub(:ec2_connection)  { connection }
+      @knife.stub(:server_dns_name)  { "grapes.wrath" }
       Chef::Knife::Ec2ServerCreate.stub(:new) { bootstrap }
       Knife::Server::Ec2SecurityGroup.stub(:new) { security_group }
+      Knife::Server::SSH.stub(:new) { ssh }
       security_group.stub(:configure_chef_server_group)
     end
 
     let(:bootstrap)       { stub(:run => true, :config => Hash.new) }
     let(:security_group)  { stub }
+    let(:ssh)             { stub }
 
     it "exits if node_name option is missing" do
       def @knife.exit(code) ; end
@@ -180,6 +184,17 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
     it "bootstraps an ec2 server" do
       bootstrap.should_receive(:run)
+      @knife.run
+    end
+
+    it "installs a new validation.pem key from the server" do
+      pending
+      Knife::Server::SSH.should_receive(:new).
+        with({ :host => "grapes.wrath", :user => "root",
+               :port => "22", :keys => "~/.ssh/mykey_dsa"})
+      Knife::Server::Credentials.should_receive(:new).
+        with(ssh, "/var/tmp/validation.pem")
+
       @knife.run
     end
   end
