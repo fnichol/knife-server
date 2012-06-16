@@ -137,6 +137,7 @@ class Chef
         config_security_group
         ec2_bootstrap.run
         fetch_validation_key
+        create_root_client
       end
 
       def ec2_bootstrap
@@ -147,10 +148,6 @@ class Chef
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap
-      end
-
-      def fetch_validation_key
-        ssh_connection
       end
 
       def ec2_connection
@@ -195,12 +192,24 @@ class Chef
         config[:distro] || "chef-server-#{config[:platform]}"
       end
 
+      def credentials_client
+        @credentials_client ||= ::Knife::Server::Credentials.new(
+          ssh_connection, Chef::Config[:validation_key])
+      end
+
+      def fetch_validation_key
+        credentials_client.install_validation_key
+      end
+
+      def create_root_client
+        ui.msg(credentials_client.create_root_client)
+      end
+
       def ssh_connection
         ::Knife::Server::SSH.new(
           :host => server_dns_name,
           :user => config[:ssh_user],
-          :port => config[:ssh_port],
-          :keys => config[:identity_file]
+          :port => config[:ssh_port]
         )
       end
     end

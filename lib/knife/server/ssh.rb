@@ -15,7 +15,11 @@ module Knife
 
       def exec!(cmd)
         full_cmd = (@user == "root" ? cmd : "sudo #{cmd}")
-        Net::SSH.start(@host, @user, @options) { |ssh| ssh.exec!(full_cmd) }
+        result = ""
+        Net::SSH.start(@host, @user, @options) do |ssh|
+          result = ssh.exec!(full_cmd)
+        end
+        result
       end
     end
   end

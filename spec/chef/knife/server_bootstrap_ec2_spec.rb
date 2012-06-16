@@ -90,14 +90,21 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
   describe "#ec2_connection" do
     before do
-      Chef::Config[:_spec_knife] = Chef::Config[:knife].dup
+      @before_config = Hash.new
+      @before_config[:knife] = Hash.new
+      [:aws_access_key_id, :aws_secret_access_key, :region].each do |attr|
+        @before_config[:knife][attr] = Chef::Config[:knife][attr]
+      end
+
       Chef::Config[:knife][:aws_access_key_id] = "key"
       Chef::Config[:knife][:aws_secret_access_key] = "secret"
       Chef::Config[:knife][:region] = "hell-south-666"
     end
 
     after do
-      Chef::Config[:knife] = Chef::Config.delete(:_spec_knife)
+      [:aws_access_key_id, :aws_secret_access_key, :region].each do |attr|
+        Chef::Config[:knife][attr] = @before_config[:knife][attr]
+      end
     end
 
     it "constructs a connection" do
@@ -153,17 +160,23 @@ describe Chef::Knife::ServerBootstrapEc2 do
     before do
       @knife.config[:security_groups] = ["mygroup"]
       @knife.config[:validation_key] = "/var/tmp/validation.pem"
+      @knife.config[:ssh_port] = "2345"
+      @knife.config[:identity_file] = "~/.ssh/mykey_dsa"
       @knife.stub(:ec2_connection)  { connection }
       @knife.stub(:server_dns_name)  { "grapes.wrath" }
       Chef::Knife::Ec2ServerCreate.stub(:new) { bootstrap }
       Knife::Server::Ec2SecurityGroup.stub(:new) { security_group }
       Knife::Server::SSH.stub(:new) { ssh }
+      Knife::Server::Credentials.stub(:new) { credentials }
       security_group.stub(:configure_chef_server_group)
+      credentials.stub(:install_validation_key)
+      credentials.stub(:create_root_client)
     end
 
     let(:bootstrap)       { stub(:run => true, :config => Hash.new) }
     let(:security_group)  { stub }
     let(:ssh)             { stub }
+    let(:credentials)     { stub }
 
     it "exits if node_name option is missing" do
       def @knife.exit(code) ; end
@@ -188,12 +201,17 @@ describe Chef::Knife::ServerBootstrapEc2 do
     end
 
     it "installs a new validation.pem key from the server" do
-      pending
       Knife::Server::SSH.should_receive(:new).
-        with({ :host => "grapes.wrath", :user => "root",
-               :port => "22", :keys => "~/.ssh/mykey_dsa"})
+        with({ :host => "grapes.wrath", :user => "root", :port => "2345" })
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/var/tmp/validation.pem")
+        with(ssh, "/etc/chef/validation.pem")
+      credentials.should_receive(:install_validation_key)
+
+      @knife.run
+    end
+
+    it "create a root client key" do
+      credentials.should_receive(:create_root_client)
 
       @knife.run
     end

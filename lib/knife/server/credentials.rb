@@ -14,8 +14,19 @@ module Knife
         end
 
         File.open(@validation_key_path, "wb") do |f|
-          f.write(@ssh.exec!("sudo cat /etc/chef/validation.pem"))
+          f.write(@ssh.exec!("cat /etc/chef/validation.pem"))
         end
+      end
+
+      def create_root_client
+        @ssh.exec!([
+          "knife configure",
+          "--initial",
+          "--server-url http://127.0.0.1:4000",
+          "--user root",
+          "--repository ''",
+          "--defaults --yes"
+        ].join(" "))
       end
 
       private
