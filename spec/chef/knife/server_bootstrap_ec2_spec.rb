@@ -158,6 +158,13 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
   describe "#run" do
     before do
+      @before_config = Hash.new
+      [:node_name, :client_key].each do |attr|
+        @before_config[attr] = Chef::Config[attr]
+      end
+      Chef::Config[:node_name] = "smithers"
+      Chef::Config[:client_key] = "/var/tmp/myclientkey.pem"
+
       @knife.config[:security_groups] = ["mygroup"]
       @knife.config[:validation_key] = "/var/tmp/validation.pem"
       @knife.config[:ssh_port] = "2345"
@@ -173,10 +180,16 @@ describe Chef::Knife::ServerBootstrapEc2 do
       credentials.stub(:create_root_client)
     end
 
+    after do
+      [:node_name, :client_key].each do |attr|
+        Chef::Config[attr] = @before_config[attr]
+      end
+    end
+
     let(:bootstrap)       { stub(:run => true, :config => Hash.new) }
     let(:security_group)  { stub }
     let(:ssh)             { stub }
-    let(:credentials)     { stub }
+    let(:credentials)     { stub.as_null_object }
 
     it "exits if node_name option is missing" do
       def @knife.exit(code) ; end
@@ -212,6 +225,13 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
     it "create a root client key" do
       credentials.should_receive(:create_root_client)
+
+      @knife.run
+    end
+
+    it "installs a client key" do
+      credentials.should_receive(:install_client_key).
+        with("smithers", "/var/tmp/myclientkey.pem")
 
       @knife.run
     end

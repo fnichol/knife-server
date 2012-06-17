@@ -138,6 +138,7 @@ class Chef
         ec2_bootstrap.run
         fetch_validation_key
         create_root_client
+        install_client_key
       end
 
       def ec2_bootstrap
@@ -199,6 +200,11 @@ class Chef
 
       def fetch_validation_key
         credentials_client.install_validation_key
+      end
+
+      def install_client_key
+        credentials_client.install_client_key(
+          Chef::Config[:node_name], Chef::Config[:client_key])
       end
 
       def create_root_client

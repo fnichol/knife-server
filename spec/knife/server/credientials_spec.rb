@@ -6,6 +6,7 @@ describe Knife::Server::Credentials do
 
   let(:ssh)                 { stub("SSH Client") }
   let(:validation_key_path) { "/tmp/validation.pem" }
+  let(:client_key_path)     { "/tmp/client.pem" }
 
   subject do
     Knife::Server::Credentials.new(ssh, validation_key_path)
@@ -13,7 +14,9 @@ describe Knife::Server::Credentials do
 
   before do
     FileUtils.mkdir_p(File.dirname(validation_key_path))
+    FileUtils.mkdir_p(File.dirname(client_key_path))
     File.new(validation_key_path, "wb")  { |f| f.write("thekey") }
+    File.new(client_key_path, "wb")  { |f| f.write("clientkey") }
   end
 
   describe "#install_validation_key" do
@@ -52,6 +55,44 @@ describe Knife::Server::Credentials do
       ].join(" "))
 
       subject.create_root_client
+    end
+  end
+
+  describe "#install_client_key" do
+    before do
+      ssh.stub(:exec!)
+      ssh.stub(:exec!).with("cat /tmp/chef-client-bob.pem") { "bobkey" }
+    end
+
+    it "creates a user client key on the server" do
+      ssh.should_receive(:exec!).with([
+        "knife client create bob --admin",
+        "--file /tmp/chef-client-bob.pem --disable-editing",
+      ].join(" "))
+
+      subject.install_client_key("bob", client_key_path)
+    end
+
+    it "creates a backup of the existing client key file" do
+      original = File.open("/tmp/client.pem", "rb") { |f| f.read }
+      subject.install_client_key("bob", client_key_path, "old")
+      backup = File.open("/tmp/client.old.pem", "rb") { |f| f.read }
+
+      original.should eq(backup)
+    end
+
+    it "skips backup file creation if client key file does not exist" do
+      FileUtils.rm_f(client_key_path)
+      subject.install_client_key("bob", client_key_path, "old")
+
+      File.exists?("/tmp/client.old.pem").should_not be_true
+    end
+
+    it "copies the key back from the server into client key file" do
+      subject.install_client_key("bob", client_key_path, "old")
+      key_str = File.open("/tmp/client.pem", "rb") { |f| f.read }
+
+      key_str.should eq("bobkey")
     end
   end
 end
