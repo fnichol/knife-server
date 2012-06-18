@@ -1,5 +1,9 @@
 bash -c '
-<%= "export http_proxy=\"#{knife_config[:bootstrap_proxy]}\"" if knife_config[:bootstrap_proxy] -%>
+<%=
+  if knife_config[:bootstrap_proxy]
+    %{export http_proxy="#{knife_config[:bootstrap_proxy]}"}
+  end
+-%>
 
 export hostname="<%= @config[:chef_node_name] %>"
 export DEBIAN_FRONTEND=noninteractive
@@ -109,14 +113,6 @@ enable_ssl_proxy() {
      -r http://s3.amazonaws.com/chef-solo/bootstrap-latest.tar.gz
 
   rm -rf $tmp_solo
-}
-
-create_root_client() {
-  knife configure --initial \
-    --server-url http://127.0.0.1:4000 \
-    --user root \
-    --repository '' \
-    --defaults --yes
 }
 
 setup
