@@ -50,8 +50,8 @@ describe Knife::Server::Credentials do
   describe "#create_root_client" do
     it "creates an initial client key on the server" do
       ssh.should_receive(:exec!).with([
-        "knife configure --initial --server-url http://127.0.0.1:4000",
-        "--user root --repository '' --defaults --yes"
+        'knife configure --initial --server-url http://127.0.0.1:4000',
+        '--user root --repository "" --defaults --yes'
       ].join(" "))
 
       subject.create_root_client

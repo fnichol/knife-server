@@ -25,7 +25,7 @@ module Knife
           "--initial",
           "--server-url http://127.0.0.1:4000",
           "--user root",
-          "--repository ''",
+          '--repository ""',
           "--defaults --yes"
         ].join(" "))
       end

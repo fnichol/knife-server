@@ -38,21 +38,24 @@ describe Knife::Server::SSH do
     Knife::Server::SSH.new(ssh_options).exec!("wat")
   end
 
-  it "adds sudo to the command if user is not root" do
+  it "does not add sudo to the command if user is root" do
     ssh_options[:user] = "root"
     ssh_connection.should_receive(:exec!).with("zappa")
 
     Knife::Server::SSH.new(ssh_options).exec!("zappa")
   end
 
-  it "does not add sudo to the command if user is root" do
-    ssh_connection.should_receive(:exec!).with("sudo zappa")
+  it "adds sudo to the command if user is not root" do
+    ssh_connection.should_receive(:exec!).
+      with([%{sudo USER=root HOME="$(getent passwd root | cut -d : -f 6)"},
+           %{bash -c 'zappa'}].join(" "))
 
     Knife::Server::SSH.new(ssh_options).exec!("zappa")
   end
 
   it "returns the output of ssh command" do
-    ssh_connection.stub(:exec!).with("sudo youdoitnow") { "okthen" }
+    ssh_options[:user] = "root"
+    ssh_connection.stub(:exec!).with("youdoitnow") { "okthen" }
 
     subject.exec!("youdoitnow").should eq("okthen")
   end
