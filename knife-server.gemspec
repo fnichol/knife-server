@@ -4,9 +4,9 @@ require File.expand_path('../lib/knife/server/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Fletcher Nichol"]
   gem.email         = ["fnichol@nichol.ca"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.summary       = %q{Chef Knife plugin to bootstrap Chef Servers}
+  gem.description   = gem.summary
+  gem.homepage      = "http://fnichol.github.com/knife-server"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
