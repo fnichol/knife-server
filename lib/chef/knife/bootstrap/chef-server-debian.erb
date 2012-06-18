@@ -6,6 +6,8 @@ bash -c '
 -%>
 
 export hostname="<%= @config[:chef_node_name] %>"
+export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
+export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
 export DEBIAN_FRONTEND=noninteractive
 
 set -x
@@ -70,8 +72,8 @@ preseed_chef_pkg() {
   mkdir -p $(dirname $preseed)
   cat <<PRESEED > $preseed
 chef	chef/chef_server_url	string	http://127.0.0.1:4000
-chef-server-webui	chef-server-webui/admin_password	password	chefchef
-chef-solr	chef-solr/amqp_password	password	chefchef
+chef-server-webui	chef-server-webui/admin_password	password	$webui_password
+chef-solr	chef-solr/amqp_password	password	$amqp_password
 PRESEED
 
   debconf-set-selections $preseed

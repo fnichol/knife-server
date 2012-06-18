@@ -29,6 +29,16 @@ describe Chef::Knife::ServerBootstrapEc2 do
       @knife.config[:tags] = %w{tag1=val1 tag2=val2}
       @knife.config[:distro] = "distro-praha"
       @knife.config[:ebs_size] = "42"
+      @knife.config[:webui_password] = "daweb"
+      @knife.config[:amqp_password] = "queueitup"
+
+      ENV['_SPEC_WEBUI_PASSWORD'] = ENV['WEBUI_PASSWORD']
+      ENV['_SPEC_AMQP_PASSWORD'] = ENV['AMQP_PASSWORD']
+    end
+
+    after do
+      ENV['WEBUI_PASSWORD'] = ENV.delete('_SPEC_WEBUI_PASSWORD')
+      ENV['AMQP_PASSWORD'] = ENV.delete('_SPEC_AMQP_PASSWORD')
     end
 
     let(:bootstrap) { @knife.ec2_bootstrap }
@@ -85,6 +95,16 @@ describe Chef::Knife::ServerBootstrapEc2 do
       @knife.config[:platform] = "freebsd"
 
       bootstrap.config[:distro].should eq("chef-server-freebsd")
+    end
+
+    it "configs the bootstrap's ENV with the webui password" do
+      bootstrap
+      ENV['WEBUI_PASSWORD'].should eq("daweb")
+    end
+
+    it "configs the bootstrap's ENV with the amqp password" do
+      bootstrap
+      ENV['AMQP_PASSWORD'].should eq("queueitup")
     end
   end
 

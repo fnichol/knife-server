@@ -65,6 +65,16 @@ class Chef
         :long => "--distro DISTRO",
         :description => "Bootstrap a distro using a template; default is 'chef-full'"
 
+      option :webui_password,
+        :long => "--webui-password SECRET",
+        :description => "Initial password for WebUI admin account, default is 'chefchef'",
+        :default => "chefchef"
+
+      option :amqp_password,
+        :long => "--amqp-password SECRET",
+        :description => "Initial password for AMQP, default is 'chefchef'",
+        :default => "chefchef"
+
       # aws/ec2 options
 
       option :aws_access_key_id,
@@ -142,9 +152,11 @@ class Chef
       end
 
       def ec2_bootstrap
+        ENV['WEBUI_PASSWORD'] = config[:webui_password]
+        ENV['AMQP_PASSWORD'] = config[:amqp_password]
         bootstrap = Chef::Knife::Ec2ServerCreate.new
         [ :chef_node_name, :ssh_user, :ssh_port, :identity_file,
-          :security_groups, :ebs_size
+          :security_groups, :ebs_size, :webui_password, :amqp_password
         ].each { |attr| bootstrap.config[attr] = config[attr] }
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
