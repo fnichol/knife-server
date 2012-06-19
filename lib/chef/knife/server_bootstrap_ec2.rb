@@ -47,7 +47,7 @@ class Chef
 
       option :prerelease,
         :long => "--prerelease",
-        :description => "Install the pre-release chef gems"
+        :description => "Install the pre-release chef gem"
 
       option :bootstrap_version,
         :long => "--bootstrap-version VERSION",
@@ -63,7 +63,7 @@ class Chef
       option :distro,
         :short => "-d DISTRO",
         :long => "--distro DISTRO",
-        :description => "Bootstrap a distro using a template; default is 'chef-full'"
+        :description => "Bootstrap a distro using a template; default is 'chef-server-<platform>'"
 
       option :webui_password,
         :long => "--webui-password SECRET",

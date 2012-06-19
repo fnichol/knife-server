@@ -56,27 +56,79 @@ follows:
 
 ##### --node-name NAME (-N)
 
+The name of your new Chef Server. The hostname of the system will be set to
+this value and the self signed SSL certificate will use this value as its CN.
+Ideally this will correspond to the A or CNAME DNS record.
+
+This option is **required**.
+
 ##### --platform PLATFORM (-P)
+
+The platform type that will be bootstrapped. By convention a bootstrap
+template of `chef-server-#{platform}.erb` will be searched for in the
+template lookup locations (gems, .chef directory, etc.).
+
+The default value is `"debian"` which support Debian and Ubuntu platforms.
 
 ##### --ssh-user USER (-x)
 
+The SSH username used when bootstrapping the Chef Server node. Note that the
+some Amazon Machine Images (AMIs) such as the official Canonical Ubuntu images
+use non-root SSH users (`"ubuntu"` for Ubuntu AMIs).
+
+The default value is `"root"`.
+
 ##### --ssh-port PORT (-p)
+
+The SSH port used when bootstrapping the Chef Server node.
+
+The default value is `"22"`.
 
 ##### --identity-file IDENTITY\_FILE (-i)
 
+The SSH identity file used for authentication.
+
 ##### --prerelease
+
+Installs a pre-release Chef gem rather than a stable release version.
 
 ##### --bootstrap-version VERSION
 
+The version of Chef to install.
+
 ##### --template-file TEMPLATE
+
+The full path to location of template to use.
 
 ##### --distro DISTRO (-d)
 
+Bootstraps the Chef Server using a particular bootstrap template.
+
+The default is `"chef-server-#{platform}"`.
+
 ##### --webui-password PASSWORD
+
+The initial password for the WebUI admin account.
+
+The default value is `"chefchef"`.
 
 ##### --amqp-password PASSWORD
 
+The initial password for AMQP.
+
+The default value is `"chefchef"`.
+
 ### <a name="knife-server-bootstrap-ec2"></a> knife server bootstrap ec2
+
+Provisions an EC2 instance on the Amazon Web Services (AWS) cloud and sets
+up an Open Source Chef Server as described [above](#knife-server-bootstrap).
+In addition, the following steps are taken initially:
+
+1. Create and configure an EC2 Security Group called **"infrastructure"** for
+   the Chef Server instance. TCP ports 22, 443, and 444 are permitted inbound
+   for SSH, the API endpoint, and the WebUI web application respectively.
+2. An EC2 instance will be provisioned using configuration and/or defaults
+   present using the [knife-ec2][knife-ec2] plugin.
 
 #### Configuration
 
@@ -140,3 +192,5 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [repo]:         https://github.com/fnichol/knife-server
 [issues]:       https://github.com/fnichol/knife-server/issues
 [contributors]: https://github.com/fnichol/knife-server/contributors
+
+[knife-ec2]:    https://github.com/opscode/knife-ec2
