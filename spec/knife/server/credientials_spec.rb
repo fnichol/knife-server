@@ -94,5 +94,11 @@ describe Knife::Server::Credentials do
 
       key_str.should eq("bobkey")
     end
+
+    it "removes the user client key from the server" do
+      ssh.should_receive(:exec!).with("rm -f /tmp/chef-client-bob.pem")
+
+      subject.install_client_key("bob", client_key_path)
+    end
   end
 end

@@ -41,6 +41,8 @@ module Knife
         File.open(client_key_path, "wb") do |f|
           f.write(@ssh.exec!("cat /tmp/chef-client-#{user}.pem"))
         end
+
+        @ssh.exec!("rm -f /tmp/chef-client-#{user}.pem")
       end
 
       private
