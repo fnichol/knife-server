@@ -134,9 +134,22 @@ In addition, the following steps are taken initially:
 
 ##### --aws-access-key-id KEY (-A)
 
+Your AWS access key ID.
+
+This option is **required**.
+
 ##### --aws-secret-access-key SECRET (-K)
 
+Your AWS API secret access key.
+
+This option is **required**.
+
 ##### --region REGION
+
+The desired AWS region, such as `"us-east-1"` or `"us-west-2"`.
+
+The default value is `"us-east-1"` but is strongly encouraged to be set
+explicitly.
 
 ##### --ssh-key KEY (-S)
 
