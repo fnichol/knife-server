@@ -153,19 +153,46 @@ explicitly.
 
 ##### --ssh-key KEY (-S)
 
+The AWS SSH key id.
+
 ##### --flavor FLAVOR (-f)
+
+The flavor of EC2 instance (m1.small, m1.medium, etc).
+
+The default value is `"m1.small"`.
 
 ##### --image IMAGE (-I)
 
+The AMI for the EC2 instance.
+
 ##### --availability-zone ZONE (-Z)
 
-##### --security-groups X,Y,Z (-G)
+The availability zone for the EC2 instance.
+
+The default value is `"us-east-1b"`.
+
+##### --groups X,Y,Z (-G)
+
+The security groups for this EC2 instance.
+
+The default value is `"infrastructure"`.
 
 ##### --tags T=V\[,T=V,...\] (-T)
 
+The tags for this EC2 instance.
+
+The resulting set will include:
+
+* `"Node=#{config[:chef_node_name]}"`
+* `"Role=chef_server"`
+
 ##### --ebs-size SIZE
 
+The size of the EBS volume in GB, for EBS-backed instances.
+
 ##### --ebs-no-delete-on-term
+
+Do not delete EBS volumn on instance termination.
 
 ## <a name="roadmap"></a> Roadmap
 
