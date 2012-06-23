@@ -1,6 +1,8 @@
 # <a name="title"></a> Knife::Server [![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server) [![Dependency Status](https://gemnasium.com/fnichol/knife-server.png)](https://gemnasium.com/fnichol/knife-server)
 
-TODO: Write a gem description
+An Opscode Chef knife plugin to manage Chef Servers. Currently only
+bootstrapping new Chef Servers is supported (on Amazon's EC2) but node
+data backup and restore is planned.
 
 ## <a name="usage"></a> Usage
 
@@ -24,6 +26,16 @@ Or install it yourself as:
 
 ```bash
 $ gem install knife-server
+```
+
+### <a name="installation-knife"></a> knife.rb Setup
+
+```ruby
+knife[:aws_access_key_id] = "MY_KEY"
+knife[:aws_secret_access_key] = "MY_SECRET"
+knife[:region] = "us-west-2"
+knife[:availability_zone] = "us-west-2a"
+knife[:flavor] = "t1.micro"
 ```
 
 ## <a name="subcommands"></a> Subcommands
