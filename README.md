@@ -37,6 +37,26 @@ $ gem install knife-server
 
 ### <a name="installation-knife"></a> knife.rb Setup
 
+When creating a Chef Server the validation key and admin client key will
+be installed on your workstation. Therefore, several knife configuration
+options are required (descriptions courtesy of the [Chef wiki][wiki_knife]):
+
+* `node_name`: User or client identity (i.e., name) to use for authenticating
+  requests to the Chef Server.
+* `client_key`: Private key file to authenticate to the Chef server.
+  Corresponds to the -k or --key option
+* `validation_key`: Specifies the private key file to use when bootstrapping
+  new hosts. See knife-client(1) for more information about the validation
+  client.
+
+For example:
+
+```ruby
+node_name       "gramsay"
+client_key      "#{ENV['HOME']}/.chef.d/gramsay.pem"
+validation_key  "#{ENV['HOME']}/.chef.d/chef-validator.pem"
+```
+
 Most options can be passed to the knife subcommands explicitly but this
 quickly becomes tiring, repetitive, and error-prone. A better solution is to
 add some of the common configuration to your `~/.chef/knife.rb` or your
@@ -265,3 +285,4 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [chef_bootstrap_knife_rb]:  https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
 [chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
 [knife-ec2]:                https://github.com/opscode/knife-ec2
+[wiki_knife]:               http://wiki.opscode.com/display/chef/Knife#Knife-Knifeconfiguration
