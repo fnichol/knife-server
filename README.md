@@ -50,7 +50,7 @@ knife[:availability_zone] = "us-west-2a"
 knife[:flavor] = "t1.micro"
 ```
 
-Better yet, why not try a more generic [knife.rb][bootstrap_knife_rb] file
+Better yet, why not try a more generic [knife.rb][chef_bootstrap_knife_rb] file
 from the [chef-bootstrap-repo][chef_bootstrap_repo] project?
 
 ## <a name="subcommands"></a> Subcommands
@@ -262,6 +262,6 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [issues]:       https://github.com/fnichol/knife-server/issues
 [contributors]: https://github.com/fnichol/knife-server/contributors
 
-[bootstrap_knife_rb]:   https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
-[bootstrap_knife_repo]: https://github.com/fnichol/chef-bootstrap-repo/
-[knife-ec2]:            https://github.com/opscode/knife-ec2
+[chef_bootstrap_knife_rb]:  https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
+[chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
+[knife-ec2]:                https://github.com/opscode/knife-ec2
