@@ -6,7 +6,14 @@ data backup and restore is planned.
 
 ## <a name="usage"></a> Usage
 
-TODO: Write usage instructions here
+Follow the [installation](#installation) instructions, then you are ready
+to create your very own Chef Server running Ubuntu on Amazon's EC2 service:
+
+```bash
+$ knife server bootstrap ec2 --ssh-user ubuntu --node-name chefapalooza.example.com
+```
+
+See [below](#subcommands) for more details.
 
 ## <a name="installation"></a> Installation
 
@@ -30,6 +37,11 @@ $ gem install knife-server
 
 ### <a name="installation-knife"></a> knife.rb Setup
 
+Most options can be passed to the knife subcommands explicitly but this
+quickly becomes tiring, repetitive, and error-prone. A better solution is to
+add some of the common configuration to your `~/.chef/knife.rb` or your
+projects `.chef/knife.rb` file like so:
+
 ```ruby
 knife[:aws_access_key_id] = "MY_KEY"
 knife[:aws_secret_access_key] = "MY_SECRET"
@@ -37,6 +49,9 @@ knife[:region] = "us-west-2"
 knife[:availability_zone] = "us-west-2a"
 knife[:flavor] = "t1.micro"
 ```
+
+Better yet, why not try a more generic [knife.rb][bootstrap_knife_rb] file
+from the [chef-bootstrap-repo][chef_bootstrap_repo] project?
 
 ## <a name="subcommands"></a> Subcommands
 
@@ -247,4 +262,6 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [issues]:       https://github.com/fnichol/knife-server/issues
 [contributors]: https://github.com/fnichol/knife-server/contributors
 
-[knife-ec2]:    https://github.com/opscode/knife-ec2
+[bootstrap_knife_rb]:   https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
+[bootstrap_knife_repo]: https://github.com/fnichol/chef-bootstrap-repo/
+[knife-ec2]:            https://github.com/opscode/knife-ec2
