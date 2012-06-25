@@ -10,7 +10,8 @@ Follow the [installation](#installation) instructions, then you are ready
 to create your very own Chef Server running Ubuntu on Amazon's EC2 service:
 
 ```bash
-$ knife server bootstrap ec2 --ssh-user ubuntu --node-name chefapalooza.example.com
+$ knife server bootstrap ec2 --ssh-user ubuntu \
+  --node-name chefapalooza.example.com
 ```
 
 See [below](#subcommands) for more details.
