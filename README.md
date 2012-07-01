@@ -252,7 +252,7 @@ Do not delete EBS volumn on instance termination.
 * knife server backup backed by local filesystem
 * knife server restore {nodes,roles,environments,data bags,all}
 * knife server restore from s3 archive (fog api)
-* knife server restore from by local filesystem
+* knife server restore from local filesystem
 
 ## <a name="development"></a> Development
 
