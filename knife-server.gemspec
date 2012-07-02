@@ -22,4 +22,5 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency "rspec", "~> 2.10"
   gem.add_development_dependency "fakefs", "~> 0.4.0"
+  gem.add_development_dependency "timecop", "~> 0.3.5"
 end
