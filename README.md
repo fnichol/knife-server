@@ -76,7 +76,7 @@ from the [chef-bootstrap-repo][chef_bootstrap_repo] project?
 
 ## <a name="subcommands"></a> Subcommands
 
-### <a name="knife-server-bootstrap"></a> knife server bootstrap
+### <a name="knife-server-bootstrap"></a> knife server bootstrap (Common Options)
 
 These subcommands will install and configure an Open Source Chef Server on
 several different clouds/environments. The high level step taken are as
@@ -99,6 +99,9 @@ follows:
    path defined in the knife `client_key` configuration variable. If a key
    already exists at that path a backup copy will be made in the same
    directory.
+
+**Note** `knife server bootstrap` can not be invoked directly; a subcommand
+must be selected which determines the provisioning strategy.
 
 #### Common Configuration
 
