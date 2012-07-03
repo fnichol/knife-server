@@ -39,7 +39,7 @@ class Chef
       def backup_dir
         @backup_dir ||= config[:backup_dir] || begin
           server_host = URI.parse(Chef::Config[:chef_server_url]).host
-          time = Time.now.utc.strftime("%Y%m%dT%H%M%S.%L-0000")
+          time = Time.now.utc.strftime("%Y%m%dT%H%M%S-0000")
           base_dir = config[:backup_dir] || Chef::Config[:file_backup_path]
 
           ::File.join(base_dir, "#{server_host}_#{time}")

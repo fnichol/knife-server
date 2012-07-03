@@ -51,7 +51,7 @@ describe Chef::Knife::ServerBackup do
         Chef::Config[:file_backup_path] = "/da/bomb"
 
         @knife.backup_dir.should eq(
-          "/da/bomb/chef.example.com_20120102T030405.000-0000")
+          "/da/bomb/chef.example.com_20120102T030405-0000")
       end
     end
   end
