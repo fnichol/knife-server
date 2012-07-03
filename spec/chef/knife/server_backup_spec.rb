@@ -60,6 +60,8 @@ describe Chef::Knife::ServerBackup do
     let(:node_list) { Hash["mynode" => "http://pancakes/nodes/mynode"] }
     let(:role_list) { Hash["myrole" => "http://pancakes/roles/myrole"] }
     let(:env_list) { Hash["myenv" => "http://pancakes/envs/myenv"] }
+    let(:data_bag_list) { Hash["mybag" => "http://pancakes/bags/mybag"] }
+    let(:data_bag_item_list) { Hash["myitem" => "http://p/bags/mybag/myitem"] }
 
     before do
       Chef::Node.stub(:list) { node_list }
@@ -68,6 +70,16 @@ describe Chef::Knife::ServerBackup do
       Chef::Role.stub(:load).with("myrole") { stub_role("myrole") }
       Chef::Environment.stub(:list) { env_list }
       Chef::Environment.stub(:load).with("myenv") { stub_env("myenv") }
+      Chef::DataBag.stub(:list) { data_bag_list }
+      Chef::DataBag.stub(:load).with("mybag") { data_bag_item_list }
+      Chef::DataBagItem.stub(:load).
+        with("mybag", "myitem") { stub_bag_item("mybag", "myitem")}
+    end
+
+    it "exits if component type is invalid" do
+      @knife.name_args = %w{nodes toasterovens}
+
+      lambda { @knife.run }.should raise_error SystemExit
     end
 
     context "for nodes" do
@@ -150,6 +162,30 @@ describe Chef::Knife::ServerBackup do
       end
     end
 
+    context "for data_bags" do
+      before { @knife.name_args = %w{data_bags} }
+
+      it "creates the backup data_bags dir" do
+        @knife.run
+
+        File.directory?(["/baks", "data_bags"].join("/")).should be_true
+      end
+
+      it "sends messages to the ui" do
+        @knife.ui.should_receive(:msg).with(/myitem/)
+
+        @knife.run
+      end
+
+      it "writes out each data bag item to a json file" do
+        @knife.run
+        json_str = File.open("/baks/data_bags/mybag/myitem.json", "rb") { |f| f.read }
+        json = JSON.parse(json_str, :create_additions => false)
+
+        json["name"].should eq("data_bag_item_mybag_myitem")
+      end
+    end
+
     context "for all" do
       it "writes a node file" do
         @knife.run
@@ -167,6 +203,12 @@ describe Chef::Knife::ServerBackup do
         @knife.run
 
         File.exists?("/baks/environments/myenv.json").should be_true
+      end
+
+      it "writes a data bag item file" do
+        @knife.run
+
+        File.exists?("/baks/data_bags/mybag/myitem.json").should be_true
       end
     end
   end
@@ -189,5 +231,12 @@ describe Chef::Knife::ServerBackup do
     e = Chef::Environment.new
     e.name(name)
     e
+  end
+
+  def stub_bag_item(bag, name)
+    d = Chef::DataBagItem.new
+    d.data_bag(bag)
+    d.raw_data[:id] = name
+    d
   end
 end

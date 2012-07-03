@@ -33,11 +33,10 @@ class Chef
         :description => "The directory to host backup files"
 
       def run
+        validate!
         components = name_args.empty? ? COMPONENTS.keys : name_args
 
-        Array(components).each do |component|
-          backup_component(component)
-        end
+        Array(components).each { |component| backup_component(component) }
       end
 
       def backup_dir
@@ -56,7 +55,16 @@ class Chef
         "nodes" => { :singular => "node", :klass => Chef::Node },
         "roles" => { :singular => "role", :klass => Chef::Role },
         "environments" => { :singular => "environment", :klass => Chef::Environment },
+        "data_bags" => { :singular => "data_bag", :klass => Chef::DataBag },
       }
+
+      def validate!
+        bad_names = name_args.reject { |c| COMPONENTS.keys.include?(c) }
+        unless bad_names.empty?
+          ui.error "Component types #{bad_names.inspect} are not valid."
+          exit 1
+        end
+      end
 
       def backup_component(component)
         c = COMPONENTS[component]
@@ -67,9 +75,31 @@ class Chef
         Array(c[:klass].list).each do |name, url|
           next if component == "environments" && name == "_default"
 
-          obj = c[:klass].load(name)
-          ui.msg "Backing up #{c[:singular]}[#{name}]"
-          ::File.open(::File.join(dir_path, "#{name}.json"), "wb") do |f|
+          case component
+          when "data_bags"
+            write_data_bag_items(name, dir_path, c)
+          else
+            write_component(name, dir_path, c)
+          end
+        end
+      end
+
+      def write_component(name, dir_path, c)
+        obj = c[:klass].load(name)
+        ui.msg "Backing up #{c[:singular]}[#{name}]"
+        ::File.open(::File.join(dir_path, "#{name}.json"), "wb") do |f|
+          f.write(obj.to_json)
+        end
+      end
+
+      def write_data_bag_items(name, dir_path, c)
+        item_path = ::File.join(dir_path, name)
+        FileUtils.mkdir_p(item_path)
+
+        Array(c[:klass].load(name)).each do |item_name, url|
+          obj = Chef::DataBagItem.load(name, item_name)
+          ui.msg "Backing up #{c[:singular]}[#{name}][#{item_name}]"
+          ::File.open(::File.join(item_path, "#{item_name}.json"), "wb") do |f|
             f.write(obj.to_json)
           end
         end
