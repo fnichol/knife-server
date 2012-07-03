@@ -245,6 +245,51 @@ The size of the EBS volume in GB, for EBS-backed instances.
 
 Do not delete EBS volumn on instance termination.
 
+### <a name="knife-server-backup"></a> knife server backup
+
+Pulls Chef data primitives from a Chef Server as JSON for backup. Backups can
+be taken of:
+
+* nodes
+* roles
+* environments
+* data bags
+
+#### Configuration
+
+##### COMPONENT[ COMPONENT ...]
+
+The following component types are valid:
+
+* `nodes`
+* `roles`
+* `environments`
+* `data_bags` (note the underscore character)
+
+When no component types are specified, all will be selected for backup.
+This is equivalent to invoking:
+
+    knife server backup nodes roles environments data_bags
+
+##### --backup-dir DIR (-D)
+
+The directory to host backup files. A sub-directory for each data primitive
+type will be created. For example if the `backup-dir` was `/backups/chef`
+then all all node JSON representations would be written to
+`/backups/chef/nodes` and data bag JSON representations would be written to
+`/backups/chef/data_bags`.
+
+The default uses the `:file_backup_path` configuration option, the
+`:chef_server_url` and the current time to construct a unique directory
+(within a second). For example, if the time was "2012-04-01 08:47:11 UTC", and
+given the following configuration (in **knife.rb**):
+
+    file_backup_path  = "/var/chef/backups"
+    chef_server_url   = "https://api.opscode.com/organizations/coolinc"
+
+then a backup directory of
+`/var/chef/backups/api.opscode.com_20120401T084711-0000` would be created.
+
 ## <a name="roadmap"></a> Roadmap
 
 * Support for other platforms (alternative bootstrap templates)

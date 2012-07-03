@@ -6,6 +6,12 @@
   documentation to clarify `knife server bootstrap` is not a proper
   subcommand. ([@fnichol][])
 
+### New features
+
+* Add `knife server backup` subcommand to backup data components (nodes,
+  roles, environments, data bags) to the workstation's file system.
+  ([@fnichol][])
+
 
 ## 0.1.0 (June 23, 2012)
 
