@@ -33,7 +33,11 @@ class Chef
         :description => "The directory to host backup files"
 
       def run
-        name_args.each { |component| backup_component(component) }
+        components = name_args.empty? ? COMPONENTS.keys : name_args
+
+        Array(components).each do |component|
+          backup_component(component)
+        end
       end
 
       def backup_dir
@@ -61,6 +65,8 @@ class Chef
         FileUtils.mkdir_p(dir_path)
 
         Array(c[:klass].list).each do |name, url|
+          next if component == "environments" && name == "_default"
+
           obj = c[:klass].load(name)
           ui.msg "Backing up #{c[:singular]}[#{name}]"
           ::File.open(::File.join(dir_path, "#{name}.json"), "wb") do |f|

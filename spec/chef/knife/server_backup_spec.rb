@@ -57,14 +57,21 @@ describe Chef::Knife::ServerBackup do
   end
 
   describe "#run" do
-    context "for nodes" do
-      let(:node_list) { Hash["mynode" => "http://pancakes/nodes/mynode"] }
+    let(:node_list) { Hash["mynode" => "http://pancakes/nodes/mynode"] }
+    let(:role_list) { Hash["myrole" => "http://pancakes/roles/myrole"] }
+    let(:env_list) { Hash["myenv" => "http://pancakes/envs/myenv"] }
 
-      before do
-        @knife.name_args = %w{nodes}
-        Chef::Node.stub(:list) { node_list }
-        Chef::Node.stub(:load).with("mynode") { stub_node("mynode") }
-      end
+    before do
+      Chef::Node.stub(:list) { node_list }
+      Chef::Node.stub(:load).with("mynode") { stub_node("mynode") }
+      Chef::Role.stub(:list) { role_list }
+      Chef::Role.stub(:load).with("myrole") { stub_role("myrole") }
+      Chef::Environment.stub(:list) { env_list }
+      Chef::Environment.stub(:load).with("myenv") { stub_env("myenv") }
+    end
+
+    context "for nodes" do
+      before { @knife.name_args = %w{nodes} }
 
       it "creates the backup nodes dir" do
         @knife.run
@@ -88,13 +95,7 @@ describe Chef::Knife::ServerBackup do
     end
 
     context "for roles" do
-      let(:role_list) { Hash["myrole" => "http://pancakes/roles/myrole"] }
-
-      before do
-        @knife.name_args = %w{roles}
-        Chef::Role.stub(:list) { role_list }
-        Chef::Role.stub(:load).with("myrole") { stub_role("myrole") }
-      end
+      before { @knife.name_args = %w{roles} }
 
       it "creates the backup roles dir" do
         @knife.run
@@ -118,13 +119,7 @@ describe Chef::Knife::ServerBackup do
     end
 
     context "for environments" do
-      let(:env_list) { Hash["myenv" => "http://pancakes/envs/myenv"] }
-
-      before do
-        @knife.name_args = %w{environments}
-        Chef::Environment.stub(:list) { env_list }
-        Chef::Environment.stub(:load).with("myenv") { stub_env("myenv") }
-      end
+      before { @knife.name_args = %w{environments} }
 
       it "creates the backup environments dir" do
         @knife.run
@@ -144,6 +139,34 @@ describe Chef::Knife::ServerBackup do
         json = JSON.parse(json_str, :create_additions => false)
 
         json["name"].should eq("myenv")
+      end
+
+      it "skips the _default environment" do
+        Chef::Environment.stub(:list) { Hash["_default" => "http://url"] }
+        Chef::Environment.stub(:load).with("_default") { stub_env("_default") }
+        @knife.run
+
+        File.exists?("/baks/environments/_default.json").should_not be_true
+      end
+    end
+
+    context "for all" do
+      it "writes a node file" do
+        @knife.run
+
+        File.exists?("/baks/nodes/mynode.json").should be_true
+      end
+
+      it "writes a role file" do
+        @knife.run
+
+        File.exists?("/baks/roles/myrole.json").should be_true
+      end
+
+      it "writes an environment file" do
+        @knife.run
+
+        File.exists?("/baks/environments/myenv.json").should be_true
       end
     end
   end
