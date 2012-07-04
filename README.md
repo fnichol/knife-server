@@ -13,6 +13,13 @@ $ knife server bootstrap ec2 --ssh-user ubuntu \
   --node-name chefapalooza.example.com
 ```
 
+Taking a backup of all node, role, data bag, and environment data is also a
+snap:
+
+```bash
+$ knife server backup
+```
+
 See [below](#subcommands) for more details.
 
 ## <a name="installation"></a> Installation
@@ -254,6 +261,10 @@ be taken of:
 * environments
 * data bags
 
+A big thanks to [Steven Danna][stevendanna] and [Joshua Timberman][jtimberman]
+for the [BackupExport][backup_export] knife plugin which was the inspiration
+for this implementation.
+
 #### Configuration
 
 ##### COMPONENT[ COMPONENT ...]
@@ -332,7 +343,10 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [issues]:       https://github.com/fnichol/knife-server/issues
 [contributors]: https://github.com/fnichol/knife-server/contributors
 
+[backup_export]:            https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_export.rb
 [chef_bootstrap_knife_rb]:  https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
 [chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
+[jtimberman]:               https://github.com/jtimberman
 [knife-ec2]:                https://github.com/opscode/knife-ec2
+[stevendanna]:              https://github.com/stevendanna
 [wiki_knife]:               http://wiki.opscode.com/display/chef/Knife#Knife-Knifeconfiguration
