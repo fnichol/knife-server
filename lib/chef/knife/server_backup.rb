@@ -18,12 +18,15 @@
 
 require 'chef/knife'
 require 'chef/node'
-require 'fileutils'
-require 'uri'
 
 class Chef
   class Knife
     class ServerBackup < Knife
+
+      deps do
+        require 'fileutils'
+        require 'uri'
+      end
 
       banner "knife server backup COMPONENT[ COMPONENT ...] (options)"
 

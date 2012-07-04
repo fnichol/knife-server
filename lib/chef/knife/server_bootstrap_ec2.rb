@@ -17,15 +17,15 @@
 #
 
 require 'chef/knife'
-require 'knife/server/ec2_security_group'
-require 'knife/server/ssh'
-require 'knife/server/credentials'
 
 class Chef
   class Knife
     class ServerBootstrapEc2 < Knife
 
       deps do
+        require 'knife/server/ec2_security_group'
+        require 'knife/server/ssh'
+        require 'knife/server/credentials'
         require 'chef/knife/ec2_server_create'
         require 'fog'
         require 'net/ssh'
