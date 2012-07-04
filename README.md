@@ -295,9 +295,7 @@ then a backup directory of
 * Support for other platforms (alternative bootstrap templates)
 * Support for Rackspace provisioning (use knife-rackspace gem)
 * Support for standalone server provisioning
-* knife server backup {nodes,roles,environments,data bags,all}
 * knife server backup backed by s3 (fog api)
-* knife server backup backed by local filesystem
 * knife server restore {nodes,roles,environments,data bags,all}
 * knife server restore from s3 archive (fog api)
 * knife server restore from local filesystem
