@@ -1,4 +1,7 @@
-## 0.1.1.dev (unreleased)
+## 0.2.1.dev (unreleased)
+
+
+## 0.2.0 (July 3, 2012)
 
 ### Bug fixes
 
