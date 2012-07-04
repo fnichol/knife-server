@@ -27,6 +27,7 @@ class Chef
         require 'knife/server/ssh'
         require 'knife/server/credentials'
         require 'chef/knife/ec2_server_create'
+        require 'chef/knife/ssh'
         require 'fog'
         require 'net/ssh'
         Chef::Knife::Ec2ServerCreate.load_deps
@@ -244,7 +245,7 @@ class Chef
       def ssh_connection
         ::Knife::Server::SSH.new(
           :host => server_dns_name,
-          :user => config[:ssh_user],
+          :username => config[:ssh_user],
           :port => config[:ssh_port]
         )
       end
