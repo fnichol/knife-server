@@ -1,4 +1,12 @@
-## 0.2.1.dev (unreleased)
+## 0.2.2.dev (unreleased)
+
+
+## 0.2.1 (July 3, 2012)
+
+### Improvements
+
+* Move knife plugin requires into dep block for speedier knife loads. Source:
+  http://wiki.opscode.com/display/chef/Knife+Plugins. ([@fnichol][])
 
 
 ## 0.2.0 (July 3, 2012)
