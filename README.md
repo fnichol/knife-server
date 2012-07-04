@@ -1,8 +1,7 @@
 # <a name="title"></a> Knife::Server [![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server) [![Dependency Status](https://gemnasium.com/fnichol/knife-server.png)](https://gemnasium.com/fnichol/knife-server)
 
-An Opscode Chef knife plugin to manage Chef Servers. Currently only
-bootstrapping new Chef Servers is supported (on Amazon's EC2) but node
-data backup and restore is planned.
+An Opscode Chef knife plugin to manage Chef Servers. Bootstrapping new Chef
+Servers (currently on Amazon's EC2) and node data backup is supported.
 
 ## <a name="usage"></a> Usage
 
@@ -269,7 +268,9 @@ The following component types are valid:
 When no component types are specified, all will be selected for backup.
 This is equivalent to invoking:
 
-    knife server backup nodes roles environments data_bags
+```bash
+$ knife server backup nodes roles environments data_bags
+```
 
 ##### --backup-dir DIR (-D)
 
@@ -284,8 +285,10 @@ The default uses the `:file_backup_path` configuration option, the
 (within a second). For example, if the time was "2012-04-01 08:47:11 UTC", and
 given the following configuration (in **knife.rb**):
 
-    file_backup_path  = "/var/chef/backups"
-    chef_server_url   = "https://api.opscode.com/organizations/coolinc"
+```ruby
+file_backup_path  = "/var/chef/backups"
+chef_server_url   = "https://api.opscode.com/organizations/coolinc"
+```
 
 then a backup directory of
 `/var/chef/backups/api.opscode.com_20120401T084711-0000` would be created.
