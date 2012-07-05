@@ -1,4 +1,16 @@
-## 0.2.2.dev (unreleased)
+## 0.2.3.dev (unreleased)
+
+
+## 0.2.2 (July 4, 2012)
+
+### New features
+
+* Add `knife server bootstrap standalone` subcommand to setup any server
+  accessible via SSH. ([@fnichol][])
+
+### Improvements
+
+* Add Code Climate badge to README. ([@fnichol][])
 
 
 ## 0.2.1 (July 3, 2012)
