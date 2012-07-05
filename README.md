@@ -347,7 +347,6 @@ you may omit typing your password on the command line and defer to a prompt.
 
 * Support for other platforms (alternative bootstrap templates)
 * Support for Rackspace provisioning (use knife-rackspace gem)
-* Support for standalone server provisioning
 * knife server backup backed by s3 (fog api)
 * knife server restore {nodes,roles,environments,data bags,all}
 * knife server restore from s3 archive (fog api)
