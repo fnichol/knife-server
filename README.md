@@ -13,6 +13,22 @@ $ knife server bootstrap ec2 --ssh-user ubuntu \
   --node-name chefapalooza.example.com
 ```
 
+Or maybe you want to try out a Chef Server using [Vagrant][vagrant_site]?
+
+```bash
+$ cat <<VAGRANTFILE > Vagrantfile
+Vagrant::Config.run do |config|
+  config.vm.box = "precise64"
+  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+  config.vm.network :hostonly, "192.168.33.11"
+  config.vm.customize ["modifyvm", :id, "--memory", 1024]
+end
+VAGRANTFILE
+$ vagrant up
+$ knife server bootstrap standalone --ssh-user vagrant \
+  --node-name chefapalooza.example.com --host 192.168.33.11
+```
+
 Taking a backup of all node, role, data bag, and environment data is also a
 snap:
 
@@ -251,6 +267,21 @@ The size of the EBS volume in GB, for EBS-backed instances.
 
 Do not delete EBS volumn on instance termination.
 
+### <a name="knife-server-bootstrap-standalone"></a> knife server bootstrap standalone
+Provisions a standalone server that is reachable on the network and sets up
+an Open Source Chef Server as described [above](#knife-server-bootstrap). You
+are responsible for providing the server so it could be a physical machine,
+Vagrant VM with host-only or bridged networking, or a cloud server instance
+with a known IP address or host name.
+
+#### Configuration
+
+##### --host FQDN_OR_IP (-H)
+
+Host name or IP address of the host to bootstrap.
+
+This option is **required**.
+
 ### <a name="knife-server-backup"></a> knife server backup
 
 Pulls Chef data primitives from a Chef Server as JSON for backup. Backups can
@@ -304,6 +335,13 @@ chef_server_url   = "https://api.opscode.com/organizations/coolinc"
 then a backup directory of
 `/var/chef/backups/api.opscode.com_20120401T084711-0000` would be created.
 
+##### --ssh-password PASSWORD (-P)
+
+The SSH password used (if needed) when bootstrapping the Chef Server node. If
+this option is not explicitly set and key based authentication fails, you will
+be prompted to enter a password in an interactive prompt. In other words,
+you may omit typing your password on the command line and defer to a prompt.
+
 ## <a name="roadmap"></a> Roadmap
 
 * Support for other platforms (alternative bootstrap templates)
@@ -349,4 +387,5 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [jtimberman]:               https://github.com/jtimberman
 [knife-ec2]:                https://github.com/opscode/knife-ec2
 [stevendanna]:              https://github.com/stevendanna
+[vagrant_site]:             http://vagrantup.com/
 [wiki_knife]:               http://wiki.opscode.com/display/chef/Knife#Knife-Knifeconfiguration
