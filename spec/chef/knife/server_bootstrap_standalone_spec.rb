@@ -17,6 +17,7 @@
 #
 
 require 'chef/knife/server_bootstrap_standalone'
+require 'chef/knife/ssh'
 require 'fakefs/spec_helpers'
 require 'net/ssh'
 Chef::Knife::ServerBootstrapStandalone.load_deps

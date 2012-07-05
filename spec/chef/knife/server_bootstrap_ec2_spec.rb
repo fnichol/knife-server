@@ -17,10 +17,9 @@
 #
 
 require 'chef/knife/server_bootstrap_ec2'
-require 'chef/knife/ec2_server_create'
-require 'fog'
-require 'net/ssh'
+require 'chef/knife/ssh'
 require 'fakefs/spec_helpers'
+require 'net/ssh'
 Chef::Knife::ServerBootstrapEc2.load_deps
 
 describe Chef::Knife::ServerBootstrapEc2 do

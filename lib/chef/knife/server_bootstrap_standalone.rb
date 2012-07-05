@@ -16,83 +16,22 @@
 # limitations under the License.
 #
 
-require 'chef/knife'
+require 'chef/knife/server_bootstrap_base'
 
 class Chef
   class Knife
     class ServerBootstrapStandalone < Knife
 
+      include Knife::ServerBootstrapBase
+
       deps do
         require 'knife/server/ssh'
         require 'knife/server/credentials'
         require 'chef/knife/bootstrap'
-        require 'chef/knife/ssh'
-        require 'net/ssh'
         Chef::Knife::Bootstrap.load_deps
       end
 
       banner "knife server bootstrap standalone (options)"
-
-      option :chef_node_name,
-        :short => "-N NAME",
-        :long => "--node-name NAME",
-        :description => "The name of your new Chef Server"
-
-      option :platform,
-        :short => "-P PLATFORM",
-        :long => "--platform PLATFORM",
-        :description => "The platform type that will be bootstrapped (debian)",
-        :default => "debian"
-
-      option :ssh_user,
-        :short => "-x USERNAME",
-        :long => "--ssh-user USERNAME",
-        :description => "The ssh username",
-        :default => "root"
-
-      option :ssh_port,
-        :short => "-p PORT",
-        :long => "--ssh-port PORT",
-        :description => "The ssh port",
-        :default => "22",
-        :proc => Proc.new { |key| Chef::Config[:knife][:ssh_port] = key }
-
-      option :identity_file,
-        :short => "-i IDENTITY_FILE",
-        :long => "--identity-file IDENTITY_FILE",
-        :description => "The SSH identity file used for authentication"
-
-      option :prerelease,
-        :long => "--prerelease",
-        :description => "Install the pre-release chef gem"
-
-      option :bootstrap_version,
-        :long => "--bootstrap-version VERSION",
-        :description => "The version of Chef to install",
-        :proc => Proc.new { |v| Chef::Config[:knife][:bootstrap_version] = v }
-
-      option :template_file,
-        :long => "--template-file TEMPLATE",
-        :description => "Full path to location of template to use",
-        :proc => Proc.new { |t| Chef::Config[:knife][:template_file] = t },
-        :default => false
-
-      option :distro,
-        :short => "-d DISTRO",
-        :long => "--distro DISTRO",
-        :description => "Bootstrap a distro using a template; default is 'chef-server-<platform>'"
-
-      option :webui_password,
-        :long => "--webui-password SECRET",
-        :description => "Initial password for WebUI admin account, default is 'chefchef'",
-        :default => "chefchef"
-
-      option :amqp_password,
-        :long => "--amqp-password SECRET",
-        :description => "Initial password for AMQP, default is 'chefchef'",
-        :default => "chefchef"
-
-      # standalone options
 
       option :host,
         :short => "-H FQDN_OR_IP",
@@ -146,28 +85,6 @@ class Chef
         config[:ssh_password] = ui.ask(
           "Enter password for #{config[:ssh_user]}@#{config[:host]}: "
         ) { |q| q.echo = false }
-      end
-
-      def fetch_validation_key
-        credentials_client.install_validation_key
-      end
-
-      def credentials_client
-        @credentials_client ||= ::Knife::Server::Credentials.new(
-          ssh_connection, Chef::Config[:validation_key])
-      end
-
-      def bootstrap_distro
-        config[:distro] || "chef-server-#{config[:platform]}"
-      end
-
-      def install_client_key
-        credentials_client.install_client_key(
-          Chef::Config[:node_name], Chef::Config[:client_key])
-      end
-
-      def create_root_client
-        ui.msg(credentials_client.create_root_client)
       end
 
       def ssh_connection
