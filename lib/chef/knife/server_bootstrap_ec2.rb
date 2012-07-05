@@ -245,7 +245,7 @@ class Chef
       def ssh_connection
         ::Knife::Server::SSH.new(
           :host => server_dns_name,
-          :username => config[:ssh_user],
+          :user => config[:ssh_user],
           :port => config[:ssh_port]
         )
       end

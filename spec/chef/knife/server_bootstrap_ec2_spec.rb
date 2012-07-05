@@ -254,7 +254,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
     it "installs a new validation.pem key from the server" do
       Knife::Server::SSH.should_receive(:new).
-        with({ :host => "grapes.wrath", :username => "root", :port => "2345" })
+        with({ :host => "grapes.wrath", :user => "root", :port => "2345" })
       Knife::Server::Credentials.should_receive(:new).
         with(ssh, "/etc/chef/validation.pem")
       credentials.should_receive(:install_validation_key)

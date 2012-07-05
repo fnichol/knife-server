@@ -21,17 +21,18 @@ require 'net/ssh'
 module Knife
   module Server
     class SSH
-      DEFAULT_OPTIONS = { :username => "root", :port => "22" }.freeze
+      DEFAULT_OPTIONS = { :user => "root", :port => "22" }.freeze
 
       def initialize(params)
         options = DEFAULT_OPTIONS.merge(params)
 
         @host = options.delete(:host)
+        @user = options.delete(:user)
         @options = options
       end
 
       def exec!(cmd)
-        if @options[:username] == "root"
+        if @user == "root"
           full_cmd = cmd
         else
           full_cmd = [
@@ -41,7 +42,7 @@ module Knife
         end
 
         result = ""
-        Net::SSH.start(@host, @options) do |ssh|
+        Net::SSH.start(@host, @user, @options) do |ssh|
           result = ssh.exec!(full_cmd)
         end
         result
