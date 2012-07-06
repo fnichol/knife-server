@@ -283,6 +283,14 @@ Host name or IP address of the host to bootstrap.
 
 This option is **required**.
 
+##### --ssh-password PASSWORD (-P)
+
+The SSH password used when bootstrapping the Chef Server node. If no password
+is provided but an SSH key-based authentication fails, then you will be
+prompted interactively for a password. In other words, if your server
+requires password authentication you can skip this option and type it in after
+the plugin starts.
+
 ### <a name="knife-server-backup"></a> knife server backup
 
 Pulls Chef data primitives from a Chef Server as JSON for backup. Backups can
