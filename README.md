@@ -43,6 +43,20 @@ Restoring all that data isn't too hard either:
 $ knife server restore
 ```
 
+Let's say you have all your roles, environments, and data bags in a Git
+repository (remember, Infrastructure as Code) and you want to build a
+new Chef Server. Try this:
+
+```bash
+$ knife server backup nodes --backup-dir /tmp/old_server
+$ knife server bootstrap ec2 --ssh-user ubuntu \
+  --node-name chef.example.com
+$ knife server restore nodes --backup-dir /tmp/old_server
+```
+
+Now fire up your cookbooks, roles, environments, and data bags. Good to go!
+Well except for old client keys on your nodes, but this is being looked into.
+
 See [below](#subcommands) for more details.
 
 ## <a name="installation"></a> Installation
@@ -379,7 +393,8 @@ When no component types are specified, all will be selected for restore.
 This is equivalent to invoking:
 
 ```bash
-$ knife server restore nodes roles environments data_bags
+$ knife server restore nodes roles environments data_bags \
+  --backup-dir /my/backup/dir
 ```
 
 ##### --backup-dir DIR (-D)
