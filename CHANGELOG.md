@@ -1,4 +1,10 @@
-## 0.2.3.dev (unreleased)
+## 0.3.0.dev (unreleased)
+
+### New features
+
+* Add `knife server restore` subcommand to restore data components (nodes,
+  roles, environments, data bags) from the workstation's file system.
+  ([@fnichol][])
 
 
 ## 0.2.2 (July 4, 2012)

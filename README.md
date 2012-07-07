@@ -1,8 +1,8 @@
 # <a name="title"></a> Knife::Server [![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server) [![Dependency Status](https://gemnasium.com/fnichol/knife-server.png)](https://gemnasium.com/fnichol/knife-server) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/fnichol/knife-server)
 
 An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
-Server on Amazon's EC2 or a standalone server. Backup your Chef Server or
-Hosted Chef's node, role, data bag, and environment JSON data.
+Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
+Server or Hosted Chef's node, role, data bag, and environment JSON data.
 
 ## <a name="usage"></a> Usage
 
@@ -35,6 +35,12 @@ snap:
 
 ```bash
 $ knife server backup
+```
+
+Restoring all that data isn't too hard either:
+
+```bash
+$ knife server restore
 ```
 
 See [below](#subcommands) for more details.
@@ -344,14 +350,52 @@ chef_server_url   = "https://api.opscode.com/organizations/coolinc"
 then a backup directory of
 `/var/chef/backups/api.opscode.com_20120401T084711-0000` would be created.
 
+### <a name="knife-server-restore"></a> knife server restore
+
+Restores Chef data primitives from JSON backups to a Chef Server. You can
+restore some or all of:
+
+* nodes
+* roles
+* environments
+* data bags
+
+A big thanks to [Steven Danna][stevendanna] and [Joshua Timberman][jtimberman]
+for the [BackupRestore][backup_restore] knife plugin which was the inspiration
+for this implementation.
+
+#### Configuration
+
+##### COMPONENT[ COMPONENT ...]
+
+The following component types are valid:
+
+* `nodes`
+* `roles`
+* `environments`
+* `data_bags` (note the underscore character)
+
+When no component types are specified, all will be selected for restore.
+This is equivalent to invoking:
+
+```bash
+$ knife server restore nodes roles environments data_bags
+```
+
+##### --backup-dir DIR (-D)
+
+The directory to containing backup JSON files. A sub-directory for each data
+primitive type is expected (the `knife server backup` subcommand provides
+this format).
+
+This option is **required**.
+
 ## <a name="roadmap"></a> Roadmap
 
 * Support for other platforms (alternative bootstrap templates)
 * Support for Rackspace provisioning (use knife-rackspace gem)
 * knife server backup backed by s3 (fog api)
-* knife server restore {nodes,roles,environments,data bags,all}
 * knife server restore from s3 archive (fog api)
-* knife server restore from local filesystem
 
 ## <a name="development"></a> Development
 
@@ -383,6 +427,7 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [contributors]: https://github.com/fnichol/knife-server/contributors
 
 [backup_export]:            https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_export.rb
+[backup_restore]:           https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_restore.rb
 [chef_bootstrap_knife_rb]:  https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
 [chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
 [jtimberman]:               https://github.com/jtimberman
