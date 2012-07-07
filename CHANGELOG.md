@@ -1,4 +1,7 @@
-## 0.3.0.dev (unreleased)
+## 0.3.1.dev (unreleased)
+
+
+## 0.3.0 (July 7, 2012)
 
 ### New features
 

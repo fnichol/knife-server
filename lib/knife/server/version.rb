@@ -18,6 +18,6 @@
 
 module Knife
   module Server
-    VERSION = "0.2.3.dev"
+    VERSION = "0.3.0"
   end
 end
