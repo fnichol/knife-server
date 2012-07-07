@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Knife::Server by fnichol</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Knife::Server</h1>
+          <h2>An Opscode Chef knife plugin to manage Chef Servers</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/fnichol/knife-server/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/fnichol/knife-server/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/fnichol/knife-server" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <p><a href="http://travis-ci.org/fnichol/knife-server"><img src="https://secure.travis-ci.org/fnichol/knife-server.png?branch=master" alt="Build Status"></a> <a href="https://gemnasium.com/fnichol/knife-server"><img src="https://gemnasium.com/fnichol/knife-server.png" alt="Dependency Status"></a> <a href="https://codeclimate.com/github/fnichol/knife-server"><img src="https://codeclimate.com/badge.png" alt="Code Climate"></a></p>
+
+<p>An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
+Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
+Server or Hosted Chef's node, role, data bag, and environment JSON data.</p>
+
+<h2>
+<a name="usage"></a> Usage</h2>
+
+<p>Follow the <a href="#installation">installation</a> instructions, then you are ready
+to create your very own Chef Server running Ubuntu on Amazon's EC2 service:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>knife server bootstrap ec2 --ssh-user ubuntu <span class="se">\</span>
+  --node-name chefapalooza.example.com
+</pre>
+</div>
+
+
+<p>Or maybe you want to try out a Chef Server using <a href="http://vagrantup.com/">Vagrant</a>?</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>cat <span class="s">&lt;&lt;VAGRANTFILE &gt; Vagrantfile</span>
+<span class="s">Vagrant::Config.run do |config|</span>
+<span class="s">  config.vm.box = "precise64"</span>
+<span class="s">  config.vm.box_url = "http://files.vagrantup.com/precise64.box"</span>
+<span class="s">  config.vm.network :hostonly, "192.168.33.11"</span>
+<span class="s">  config.vm.customize ["modifyvm", :id, "--memory", 2048]</span>
+<span class="s">end</span>
+<span class="s">VAGRANTFILE</span>
+<span class="nv">$ </span>vagrant up
+<span class="nv">$ </span>knife server bootstrap standalone --ssh-user vagrant <span class="se">\</span>
+  --node-name chefapalooza.example.com --host 192.168.33.11
+</pre>
+</div>
+
+
+<p>Taking a backup of all node, role, data bag, and environment data is also a
+snap:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>knife server backup
+</pre>
+</div>
+
+
+<p>Restoring all that data isn't too hard either:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>knife server restore
+</pre>
+</div>
+
+
+<p>Let's say you have all your roles, environments, and data bags in a Git
+repository (remember, Infrastructure as Code) and you want to build a
+new Chef Server. Try this:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>knife server backup nodes --backup-dir /tmp/old_server
+<span class="nv">$ </span>knife server bootstrap ec2 --ssh-user ubuntu <span class="se">\</span>
+  --node-name chef.example.com
+<span class="nv">$ </span>knife server restore nodes --backup-dir /tmp/old_server
+</pre>
+</div>
+
+
+<p>Now fire up your cookbooks, roles, environments, and data bags. Good to go!
+Well except for old client keys on your nodes, but this is being looked into.</p>
+
+<p>See <a href="#subcommands">below</a> for more details.</p>
+
+<h2>
+<a name="installation"></a> Installation</h2>
+
+<p>Add this line to your application's Gemfile:</p>
+
+<div class="highlight">
+<pre><span class="n">gem</span> <span class="s1">'knife-server'</span>
+</pre>
+</div>
+
+
+<p>And then execute:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>bundle
+</pre>
+</div>
+
+
+<p>Or install it yourself as:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>gem install knife-server
+</pre>
+</div>
+
+
+<h3>
+<a name="installation-knife"></a> knife.rb Setup</h3>
+
+<p>When creating a Chef Server the validation key and admin client key will
+be installed on your workstation. Therefore, several knife configuration
+options are required (descriptions courtesy of the <a href="http://wiki.opscode.com/display/chef/Knife#Knife-Knifeconfiguration">Chef wiki</a>):</p>
+
+<ul>
+<li>
+<code>node_name</code>: User or client identity (i.e., name) to use for authenticating
+requests to the Chef Server.</li>
+<li>
+<code>client_key</code>: Private key file to authenticate to the Chef server.
+Corresponds to the -k or --key option</li>
+<li>
+<code>validation_key</code>: Specifies the private key file to use when bootstrapping
+new hosts. See knife-client(1) for more information about the validation
+client.</li>
+</ul><p>For example:</p>
+
+<div class="highlight">
+<pre><span class="n">node_name</span>       <span class="s2">"gramsay"</span>
+<span class="n">client_key</span>      <span class="s2">"</span><span class="si">#{</span><span class="no">ENV</span><span class="o">[</span><span class="s1">'HOME'</span><span class="o">]</span><span class="si">}</span><span class="s2">/.chef.d/gramsay.pem"</span>
+<span class="n">validation_key</span>  <span class="s2">"</span><span class="si">#{</span><span class="no">ENV</span><span class="o">[</span><span class="s1">'HOME'</span><span class="o">]</span><span class="si">}</span><span class="s2">/.chef.d/chef-validator.pem"</span>
+</pre>
+</div>
+
+
+<p>Most options can be passed to the knife subcommands explicitly but this
+quickly becomes tiring, repetitive, and error-prone. A better solution is to
+add some of the common configuration to your <code>~/.chef/knife.rb</code> or your
+projects <code>.chef/knife.rb</code> file like so:</p>
+
+<div class="highlight">
+<pre><span class="n">knife</span><span class="o">[</span><span class="ss">:aws_access_key_id</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_KEY"</span>
+<span class="n">knife</span><span class="o">[</span><span class="ss">:aws_secret_access_key</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_SECRET"</span>
+<span class="n">knife</span><span class="o">[</span><span class="ss">:region</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"us-west-2"</span>
+<span class="n">knife</span><span class="o">[</span><span class="ss">:availability_zone</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"us-west-2a"</span>
+<span class="n">knife</span><span class="o">[</span><span class="ss">:flavor</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"t1.micro"</span>
+</pre>
+</div>
+
+
+<p>Better yet, why not try a more generic <a href="https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb">knife.rb</a> file
+from the <a href="https://github.com/fnichol/chef-bootstrap-repo/">chef-bootstrap-repo</a> project?</p>
+
+<h2>
+<a name="subcommands"></a> Subcommands</h2>
+
+<h3>
+<a name="knife-server-bootstrap"></a> knife server bootstrap (Common Options)</h3>
+
+<p>These subcommands will install and configure an Open Source Chef Server on
+several different clouds/environments. The high level step taken are as
+follows:</p>
+
+<ol>
+<li>Provision or use a node and install the Chef Server software fronted by
+an Apache2 instance handling SSL for the API port (TCP/443) and the
+WebUI web application (TCP/444).</li>
+<li>Fetch the validation key from the server and install it onto the
+workstation issuing the knife subcommand. The validation key will be
+installed at the path defined in the knife <code>validation_key</code> variable.
+If a key already exists at that path a backup copy will be made in the
+same directory.</li>
+<li>Create an initial admin client key called <code>root</code> in the root user's account
+on the server which can be used for local administration of the Chef
+Server.</li>
+<li>Create an admin client key with the name defined in the knife
+<code>node_name</code> configuration variable and install it onto the workstation
+issuing the knife subcommand. The client key will be installed at the
+path defined in the knife <code>client_key</code> configuration variable. If a key
+already exists at that path a backup copy will be made in the same
+directory.</li>
+</ol><p><strong>Note</strong> <code>knife server bootstrap</code> can not be invoked directly; a subcommand
+must be selected which determines the provisioning strategy.</p>
+
+<h4>Common Configuration</h4>
+
+<h5>--node-name NAME (-N)</h5>
+
+<p>The name of your new Chef Server. The hostname of the system will be set to
+this value and the self signed SSL certificate will use this value as its CN.
+Ideally this will correspond to the A or CNAME DNS record.</p>
+
+<p>This option is <strong>required</strong>.</p>
+
+<h5>--platform PLATFORM (-P)</h5>
+
+<p>The platform type that will be bootstrapped. By convention a bootstrap
+template of <code>chef-server-#{platform}.erb</code> will be searched for in the
+template lookup locations (gems, .chef directory, etc.).</p>
+
+<p>The default value is <code>"debian"</code> which support Debian and Ubuntu platforms.</p>
+
+<h5>--ssh-user USER (-x)</h5>
+
+<p>The SSH username used when bootstrapping the Chef Server node. Note that the
+some Amazon Machine Images (AMIs) such as the official Canonical Ubuntu images
+use non-root SSH users (<code>"ubuntu"</code> for Ubuntu AMIs).</p>
+
+<p>The default value is <code>"root"</code>.</p>
+
+<h5>--ssh-port PORT (-p)</h5>
+
+<p>The SSH port used when bootstrapping the Chef Server node.</p>
+
+<p>The default value is <code>"22"</code>.</p>
+
+<h5>--identity-file IDENTITY_FILE (-i)</h5>
+
+<p>The SSH identity file used for authentication.</p>
+
+<h5>--prerelease</h5>
+
+<p>Installs a pre-release Chef gem rather than a stable release version.</p>
+
+<h5>--bootstrap-version VERSION</h5>
+
+<p>The version of Chef to install.</p>
+
+<h5>--template-file TEMPLATE</h5>
+
+<p>The full path to location of template to use.</p>
+
+<h5>--distro DISTRO (-d)</h5>
+
+<p>Bootstraps the Chef Server using a particular bootstrap template.</p>
+
+<p>The default is <code>"chef-server-#{platform}"</code>.</p>
+
+<h5>--webui-password PASSWORD</h5>
+
+<p>The initial password for the WebUI admin account.</p>
+
+<p>The default value is <code>"chefchef"</code>.</p>
+
+<h5>--amqp-password PASSWORD</h5>
+
+<p>The initial password for AMQP.</p>
+
+<p>The default value is <code>"chefchef"</code>.</p>
+
+<h3>
+<a name="knife-server-bootstrap-ec2"></a> knife server bootstrap ec2</h3>
+
+<p>Provisions an EC2 instance on the Amazon Web Services (AWS) cloud and sets
+up an Open Source Chef Server as described <a href="#knife-server-bootstrap">above</a>.
+In addition, the following steps are taken initially:</p>
+
+<ol>
+<li>Create and configure an EC2 Security Group called <strong>"infrastructure"</strong> for
+the Chef Server instance. TCP ports 22, 443, and 444 are permitted inbound
+for SSH, the API endpoint, and the WebUI web application respectively.</li>
+<li>An EC2 instance will be provisioned using configuration and/or defaults
+present using the <a href="https://github.com/opscode/knife-ec2">knife-ec2</a> plugin.</li>
+</ol><h4>Configuration</h4>
+
+<h5>--aws-access-key-id KEY (-A)</h5>
+
+<p>Your AWS access key ID.</p>
+
+<p>This option is <strong>required</strong>.</p>
+
+<h5>--aws-secret-access-key SECRET (-K)</h5>
+
+<p>Your AWS API secret access key.</p>
+
+<p>This option is <strong>required</strong>.</p>
+
+<h5>--region REGION</h5>
+
+<p>The desired AWS region, such as <code>"us-east-1"</code> or <code>"us-west-2"</code>.</p>
+
+<p>The default value is <code>"us-east-1"</code> but is strongly encouraged to be set
+explicitly.</p>
+
+<h5>--ssh-key KEY (-S)</h5>
+
+<p>The AWS SSH key id.</p>
+
+<h5>--flavor FLAVOR (-f)</h5>
+
+<p>The flavor of EC2 instance (m1.small, m1.medium, etc).</p>
+
+<p>The default value is <code>"m1.small"</code>.</p>
+
+<h5>--image IMAGE (-I)</h5>
+
+<p>The AMI for the EC2 instance.</p>
+
+<h5>--availability-zone ZONE (-Z)</h5>
+
+<p>The availability zone for the EC2 instance.</p>
+
+<p>The default value is <code>"us-east-1b"</code>.</p>
+
+<h5>--groups X,Y,Z (-G)</h5>
+
+<p>The security groups for this EC2 instance.</p>
+
+<p>The default value is <code>"infrastructure"</code>.</p>
+
+<h5>--tags T=V[,T=V,...] (-T)</h5>
+
+<p>The tags for this EC2 instance.</p>
+
+<p>The resulting set will include:</p>
+
+<ul>
+<li><code>"Node=#{config[:chef_node_name]}"</code></li>
+<li><code>"Role=chef_server"</code></li>
+</ul><h5>--ebs-size SIZE</h5>
+
+<p>The size of the EBS volume in GB, for EBS-backed instances.</p>
+
+<h5>--ebs-no-delete-on-term</h5>
+
+<p>Do not delete EBS volumn on instance termination.</p>
+
+<h3>
+<a name="knife-server-bootstrap-standalone"></a> knife server bootstrap standalone</h3>
+
+<p>Provisions a standalone server that is reachable on the network and sets up
+an Open Source Chef Server as described <a href="#knife-server-bootstrap">above</a>. You
+are responsible for providing the server so it could be a physical machine,
+Vagrant VM with host-only or bridged networking, or a cloud server instance
+with a known IP address or host name.</p>
+
+<h4>Configuration</h4>
+
+<h5>--host FQDN_OR_IP (-H)</h5>
+
+<p>Host name or IP address of the host to bootstrap.</p>
+
+<p>This option is <strong>required</strong>.</p>
+
+<h5>--ssh-password PASSWORD (-P)</h5>
+
+<p>The SSH password used when bootstrapping the Chef Server node. If no password
+is provided but an SSH key-based authentication fails, then you will be
+prompted interactively for a password. In other words, if your server
+requires password authentication you can skip this option and type it in after
+the plugin starts.</p>
+
+<h3>
+<a name="knife-server-backup"></a> knife server backup</h3>
+
+<p>Pulls Chef data primitives from a Chef Server as JSON for backup. Backups can
+be taken of:</p>
+
+<ul>
+<li>nodes</li>
+<li>roles</li>
+<li>environments</li>
+<li>data bags</li>
+</ul><p>A big thanks to <a href="https://github.com/stevendanna">Steven Danna</a> and <a href="https://github.com/jtimberman">Joshua Timberman</a>
+for the <a href="https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_export.rb">BackupExport</a> knife plugin which was the inspiration
+for this implementation.</p>
+
+<h4>Configuration</h4>
+
+<h5>COMPONENT[ COMPONENT ...]</h5>
+
+<p>The following component types are valid:</p>
+
+<ul>
+<li><code>nodes</code></li>
+<li><code>roles</code></li>
+<li><code>environments</code></li>
+<li>
+<code>data_bags</code> (note the underscore character)</li>
+</ul><p>When no component types are specified, all will be selected for backup.
+This is equivalent to invoking:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>knife server backup nodes roles environments data_bags
+</pre>
+</div>
+
+
+<h5>--backup-dir DIR (-D)</h5>
+
+<p>The directory to host backup files. A sub-directory for each data primitive
+type will be created. For example if the <code>backup-dir</code> was <code>/backups/chef</code>
+then all all node JSON representations would be written to
+<code>/backups/chef/nodes</code> and data bag JSON representations would be written to
+<code>/backups/chef/data_bags</code>.</p>
+
+<p>The default uses the <code>:file_backup_path</code> configuration option, the
+<code>:chef_server_url</code> and the current time to construct a unique directory
+(within a second). For example, if the time was "2012-04-01 08:47:11 UTC", and
+given the following configuration (in <strong>knife.rb</strong>):</p>
+
+<div class="highlight">
+<pre><span class="n">file_backup_path</span>  <span class="o">=</span> <span class="s2">"/var/chef/backups"</span>
+<span class="n">chef_server_url</span>   <span class="o">=</span> <span class="s2">"https://api.opscode.com/organizations/coolinc"</span>
+</pre>
+</div>
+
+
+<p>then a backup directory of
+<code>/var/chef/backups/api.opscode.com_20120401T084711-0000</code> would be created.</p>
+
+<h3>
+<a name="knife-server-restore"></a> knife server restore</h3>
+
+<p>Restores Chef data primitives from JSON backups to a Chef Server. You can
+restore some or all of:</p>
+
+<ul>
+<li>nodes</li>
+<li>roles</li>
+<li>environments</li>
+<li>data bags</li>
+</ul><p>A big thanks to <a href="https://github.com/stevendanna">Steven Danna</a> and <a href="https://github.com/jtimberman">Joshua Timberman</a>
+for the <a href="https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_restore.rb">BackupRestore</a> knife plugin which was the inspiration
+for this implementation.</p>
+
+<h4>Configuration</h4>
+
+<h5>COMPONENT[ COMPONENT ...]</h5>
+
+<p>The following component types are valid:</p>
+
+<ul>
+<li><code>nodes</code></li>
+<li><code>roles</code></li>
+<li><code>environments</code></li>
+<li>
+<code>data_bags</code> (note the underscore character)</li>
+</ul><p>When no component types are specified, all will be selected for restore.
+This is equivalent to invoking:</p>
+
+<div class="highlight">
+<pre><span class="nv">$ </span>knife server restore nodes roles environments data_bags <span class="se">\</span>
+  --backup-dir /my/backup/dir
+</pre>
+</div>
+
+
+<h5>--backup-dir DIR (-D)</h5>
+
+<p>The directory to containing backup JSON files. A sub-directory for each data
+primitive type is expected (the <code>knife server backup</code> subcommand provides
+this format).</p>
+
+<p>This option is <strong>required</strong>.</p>
+
+<h2>
+<a name="roadmap"></a> Roadmap</h2>
+
+<ul>
+<li>Support for other platforms (alternative bootstrap templates)</li>
+<li>Support for Rackspace provisioning (use knife-rackspace gem)</li>
+<li>knife server backup backed by s3 (fog api)</li>
+<li>knife server restore from s3 archive (fog api)</li>
+</ul><h2>
+<a name="development"></a> Development</h2>
+
+<ul>
+<li>Source hosted at <a href="https://github.com/fnichol/knife-server">GitHub</a>
+</li>
+<li>Report issues/questions/feature requests on <a href="https://github.com/fnichol/knife-server/issues">GitHub Issues</a>
+</li>
+</ul><p>Pull requests are very welcome! Make sure your patches are well tested.
+Ideally create a topic branch for every separate change you make. For
+example:</p>
+
+<ol>
+<li>Fork the repo</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Added some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol><h2>
+<a name="authors"></a> Authors</h2>
+
+<p>Created and maintained by <a href="https://github.com/fnichol">Fletcher Nichol</a> (<a href="mailto:fnichol@nichol.ca">fnichol@nichol.ca</a>)</p>
+
+<h2>
+<a name="license"></a> License</h2>
+
+<p>Apache License, Version 2.0 (see <a href="https://github.com/fnichol/knife-server/blob/master/LICENSE">LICENSE</a>)</p>
+        </section>
+
+        <footer>
+          Knife::Server is maintained by <a href="https://github.com/fnichol">fnichol</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+                  <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-29670723-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+      </div>
+    </div>
+  </body>
+</html>
