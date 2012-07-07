@@ -344,13 +344,6 @@ chef_server_url   = "https://api.opscode.com/organizations/coolinc"
 then a backup directory of
 `/var/chef/backups/api.opscode.com_20120401T084711-0000` would be created.
 
-##### --ssh-password PASSWORD (-P)
-
-The SSH password used (if needed) when bootstrapping the Chef Server node. If
-this option is not explicitly set and key based authentication fails, you will
-be prompted to enter a password in an interactive prompt. In other words,
-you may omit typing your password on the command line and defer to a prompt.
-
 ## <a name="roadmap"></a> Roadmap
 
 * Support for other platforms (alternative bootstrap templates)
