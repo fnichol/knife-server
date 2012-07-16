@@ -1,5 +1,9 @@
 ## 0.3.1.dev (unreleased)
 
+### Improvements
+
+* Pull request [#3](https://github.com/fnichol/knife-server/pull/3): Set server hostname even if /etc/hostname is not present. ([@iafonov][])
+
 
 ## 0.3.0 (July 7, 2012)
 
@@ -50,4 +54,5 @@
 The initial release.
 
 [@fnichol]: https://github.com/fnichol
+[@iafonov]: https://github.com/iafonov
 
