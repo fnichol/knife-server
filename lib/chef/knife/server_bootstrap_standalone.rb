@@ -92,7 +92,8 @@ class Chef
           :host => config[:host],
           :user => config[:ssh_user],
           :password => config[:ssh_password],
-          :port => config[:ssh_port]
+          :port => config[:ssh_port],
+          :keys => [config[:identity_file]]
         )
       end
     end
