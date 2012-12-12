@@ -31,7 +31,7 @@
         <hr>
 
         <section id="main_content">
-          <p><a href="http://travis-ci.org/fnichol/knife-server"><img src="https://secure.travis-ci.org/fnichol/knife-server.png?branch=master" alt="Build Status"></a> <a href="https://gemnasium.com/fnichol/knife-server"><img src="https://gemnasium.com/fnichol/knife-server.png" alt="Dependency Status"></a> <a href="https://codeclimate.com/github/fnichol/knife-server"><img src="https://codeclimate.com/badge.png" alt="Code Climate"></a></p>
+          <p><a href="http://travis-ci.org/fnichol/knife-server"><img src="https://secure.travis-ci.org/fnichol/knife-server.png?branch=master" alt="Build Status"></a> <a href="https://codeclimate.com/github/fnichol/knife-server"><img src="https://codeclimate.com/badge.png" alt="Code Climate"></a></p>
 
 <p>An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
 Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
@@ -43,17 +43,13 @@ Server or Hosted Chef's node, role, data bag, and environment JSON data.</p>
 <p>Follow the <a href="#installation">installation</a> instructions, then you are ready
 to create your very own Chef Server running Ubuntu on Amazon's EC2 service:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>knife server bootstrap ec2 --ssh-user ubuntu <span class="se">\</span>
+<div class="highlight"><pre><span class="nv">$ </span>knife server bootstrap ec2 --ssh-user ubuntu <span class="se">\</span>
   --node-name chefapalooza.example.com
-</pre>
-</div>
-
+</pre></div>
 
 <p>Or maybe you want to try out a Chef Server using <a href="http://vagrantup.com/">Vagrant</a>?</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>cat <span class="s">&lt;&lt;VAGRANTFILE &gt; Vagrantfile</span>
+<div class="highlight"><pre><span class="nv">$ </span>cat <span class="s">&lt;&lt;VAGRANTFILE &gt; Vagrantfile</span>
 <span class="s">Vagrant::Config.run do |config|</span>
 <span class="s">  config.vm.box = "precise64"</span>
 <span class="s">  config.vm.box_url = "http://files.vagrantup.com/precise64.box"</span>
@@ -64,39 +60,28 @@ to create your very own Chef Server running Ubuntu on Amazon's EC2 service:</p>
 <span class="nv">$ </span>vagrant up
 <span class="nv">$ </span>knife server bootstrap standalone --ssh-user vagrant <span class="se">\</span>
   --node-name chefapalooza.example.com --host 192.168.33.11
-</pre>
-</div>
-
+</pre></div>
 
 <p>Taking a backup of all node, role, data bag, and environment data is also a
 snap:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>knife server backup
-</pre>
-</div>
-
+<div class="highlight"><pre><span class="nv">$ </span>knife server backup
+</pre></div>
 
 <p>Restoring all that data isn't too hard either:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>knife server restore
-</pre>
-</div>
-
+<div class="highlight"><pre><span class="nv">$ </span>knife server restore
+</pre></div>
 
 <p>Let's say you have all your roles, environments, and data bags in a Git
 repository (remember, Infrastructure as Code) and you want to build a
 new Chef Server. Try this:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>knife server backup nodes --backup-dir /tmp/old_server
+<div class="highlight"><pre><span class="nv">$ </span>knife server backup nodes --backup-dir /tmp/old_server
 <span class="nv">$ </span>knife server bootstrap ec2 --ssh-user ubuntu <span class="se">\</span>
   --node-name chef.example.com
 <span class="nv">$ </span>knife server restore nodes --backup-dir /tmp/old_server
-</pre>
-</div>
-
+</pre></div>
 
 <p>Now fire up your cookbooks, roles, environments, and data bags. Good to go!
 Well except for old client keys on your nodes, but this is being looked into.</p>
@@ -108,27 +93,18 @@ Well except for old client keys on your nodes, but this is being looked into.</p
 
 <p>Add this line to your application's Gemfile:</p>
 
-<div class="highlight">
-<pre><span class="n">gem</span> <span class="s1">'knife-server'</span>
-</pre>
-</div>
-
+<div class="highlight"><pre><span class="n">gem</span> <span class="s1">'knife-server'</span>
+</pre></div>
 
 <p>And then execute:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>bundle
-</pre>
-</div>
-
+<div class="highlight"><pre><span class="nv">$ </span>bundle
+</pre></div>
 
 <p>Or install it yourself as:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>gem install knife-server
-</pre>
-</div>
-
+<div class="highlight"><pre><span class="nv">$ </span>gem install knife-server
+</pre></div>
 
 <h3>
 <a name="installation-knife"></a> knife.rb Setup</h3>
@@ -150,28 +126,22 @@ new hosts. See knife-client(1) for more information about the validation
 client.</li>
 </ul><p>For example:</p>
 
-<div class="highlight">
-<pre><span class="n">node_name</span>       <span class="s2">"gramsay"</span>
+<div class="highlight"><pre><span class="n">node_name</span>       <span class="s2">"gramsay"</span>
 <span class="n">client_key</span>      <span class="s2">"</span><span class="si">#{</span><span class="no">ENV</span><span class="o">[</span><span class="s1">'HOME'</span><span class="o">]</span><span class="si">}</span><span class="s2">/.chef.d/gramsay.pem"</span>
 <span class="n">validation_key</span>  <span class="s2">"</span><span class="si">#{</span><span class="no">ENV</span><span class="o">[</span><span class="s1">'HOME'</span><span class="o">]</span><span class="si">}</span><span class="s2">/.chef.d/chef-validator.pem"</span>
-</pre>
-</div>
-
+</pre></div>
 
 <p>Most options can be passed to the knife subcommands explicitly but this
 quickly becomes tiring, repetitive, and error-prone. A better solution is to
 add some of the common configuration to your <code>~/.chef/knife.rb</code> or your
 projects <code>.chef/knife.rb</code> file like so:</p>
 
-<div class="highlight">
-<pre><span class="n">knife</span><span class="o">[</span><span class="ss">:aws_access_key_id</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_KEY"</span>
+<div class="highlight"><pre><span class="n">knife</span><span class="o">[</span><span class="ss">:aws_access_key_id</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_KEY"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:aws_secret_access_key</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_SECRET"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:region</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"us-west-2"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:availability_zone</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"us-west-2a"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:flavor</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"t1.micro"</span>
-</pre>
-</div>
-
+</pre></div>
 
 <p>Better yet, why not try a more generic <a href="https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb">knife.rb</a> file
 from the <a href="https://github.com/fnichol/chef-bootstrap-repo/">chef-bootstrap-repo</a> project?</p>
@@ -405,11 +375,8 @@ for this implementation.</p>
 </ul><p>When no component types are specified, all will be selected for backup.
 This is equivalent to invoking:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>knife server backup nodes roles environments data_bags
-</pre>
-</div>
-
+<div class="highlight"><pre><span class="nv">$ </span>knife server backup nodes roles environments data_bags
+</pre></div>
 
 <h5>--backup-dir DIR (-D)</h5>
 
@@ -424,12 +391,9 @@ then all all node JSON representations would be written to
 (within a second). For example, if the time was "2012-04-01 08:47:11 UTC", and
 given the following configuration (in <strong>knife.rb</strong>):</p>
 
-<div class="highlight">
-<pre><span class="n">file_backup_path</span>  <span class="o">=</span> <span class="s2">"/var/chef/backups"</span>
+<div class="highlight"><pre><span class="n">file_backup_path</span>  <span class="o">=</span> <span class="s2">"/var/chef/backups"</span>
 <span class="n">chef_server_url</span>   <span class="o">=</span> <span class="s2">"https://api.opscode.com/organizations/coolinc"</span>
-</pre>
-</div>
-
+</pre></div>
 
 <p>then a backup directory of
 <code>/var/chef/backups/api.opscode.com_20120401T084711-0000</code> would be created.</p>
@@ -464,12 +428,9 @@ for this implementation.</p>
 </ul><p>When no component types are specified, all will be selected for restore.
 This is equivalent to invoking:</p>
 
-<div class="highlight">
-<pre><span class="nv">$ </span>knife server restore nodes roles environments data_bags <span class="se">\</span>
+<div class="highlight"><pre><span class="nv">$ </span>knife server restore nodes roles environments data_bags <span class="se">\</span>
   --backup-dir /my/backup/dir
-</pre>
-</div>
-
+</pre></div>
 
 <h5>--backup-dir DIR (-D)</h5>
 
