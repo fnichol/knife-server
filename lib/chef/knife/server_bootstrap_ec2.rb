@@ -112,9 +112,7 @@ class Chef
         ENV['WEBUI_PASSWORD'] = config[:webui_password]
         ENV['AMQP_PASSWORD'] = config[:amqp_password]
         bootstrap = Chef::Knife::Ec2ServerCreate.new
-        [ :chef_node_name, :ssh_user, :ssh_port, :identity_file,
-          :security_groups, :ebs_size, :webui_password, :amqp_password
-        ].each { |attr| bootstrap.config[attr] = config[attr] }
+        bootstrap.config.merge!(config)
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap
