@@ -1,8 +1,22 @@
-## 0.3.1.dev (unreleased)
+## 0.3.2.dev (unreleased)
+
+
+## 0.3.1 (December 12, 2012)
+
+### Bug fixes
+
+* Pull request [#7](https://github.com/fnichol/knife-server/pull/11): Fix
+  identity-file flag for bootstrapping. ([@xdissent][])
+* Pull request [#11](https://github.com/fnichol/knife-server/pull/11): Fix
+  identity-file flag for EC2 bootstrapping. ([@erikh][])
+* Pull request [#8](https://github.com/fnichol/knife-server/pull/8): Merge
+  server config to Ec2ServerCreate config. ([@stormsilver][])
 
 ### Improvements
 
-* Pull request [#3](https://github.com/fnichol/knife-server/pull/3): Set server hostname even if /etc/hostname is not present. ([@iafonov][])
+* Pull request [#3](https://github.com/fnichol/knife-server/pull/3): Set
+  server hostname even if /etc/hostname is not present. ([@iafonov][])
+* Update usage section in README.
 
 
 ## 0.3.0 (July 7, 2012)
@@ -53,6 +67,8 @@
 
 The initial release.
 
+[@erikh]: https://github.com/erikh
 [@fnichol]: https://github.com/fnichol
 [@iafonov]: https://github.com/iafonov
-
+[@stormsilver]: https://github.com/stormsilver
+[@xdissent]: https://github.com/xdissent
