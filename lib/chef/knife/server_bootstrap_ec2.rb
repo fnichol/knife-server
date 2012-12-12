@@ -162,7 +162,8 @@ class Chef
         ::Knife::Server::SSH.new(
           :host => server_dns_name,
           :user => config[:ssh_user],
-          :port => config[:ssh_port]
+          :port => config[:ssh_port],
+          :keys => [config[:identity_file]]
         )
       end
     end
