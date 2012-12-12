@@ -206,7 +206,7 @@ describe Chef::Knife::ServerBootstrapStandalone do
       it "creates an SSH connection without a password" do
         Knife::Server::SSH.should_receive(:new).with({
           :host => "192.168.0.1", :port => "2345",
-          :user => "root", :password => nil
+          :user => "root", :password => nil, :keys => [nil]
         })
 
         @knife.run
@@ -221,7 +221,22 @@ describe Chef::Knife::ServerBootstrapStandalone do
       it "creates an SSH connection with a password" do
         Knife::Server::SSH.should_receive(:new).with({
           :host => "192.168.0.1", :port => "2345",
-          :user => "root", :password => "snoopy"
+          :user => "root", :password => "snoopy", :keys => [nil]
+        })
+
+        @knife.run
+      end
+    end
+
+    context "when an identity file is provided" do
+      before do
+        @knife.config[:identity_file] = "poop.pem"
+      end
+
+      it "creates an SSH connection with an identity file" do
+        Knife::Server::SSH.should_receive(:new).with({
+          :host => "192.168.0.1", :port => "2345",
+          :user => "root", :password => nil, :keys => ["poop.pem"]
         })
 
         @knife.run
