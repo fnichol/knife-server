@@ -106,12 +106,17 @@ Well except for old client keys on your nodes, but this is being looked into.</p
 <div class="highlight"><pre><span class="nv">$ </span>gem install knife-server
 </pre></div>
 
+<p>Next, you <strong>must</strong> set up a <a href="#installation-knife">knife.rb configuration</a> so
+that the shipped Knife subcommands know where to place and modify key files,
+backup directories, etc.</p>
+
 <h3>
 <a name="installation-knife"></a> knife.rb Setup</h3>
 
 <p>When creating a Chef Server the validation key and admin client key will
 be installed on your workstation. Therefore, several knife configuration
-options are required (descriptions courtesy of the <a href="http://wiki.opscode.com/display/chef/Knife#Knife-Knifeconfiguration">Chef wiki</a>):</p>
+options are required (descriptions courtesy of the
+<a href="http://docs.opscode.com/config_rb_knife.html">Chef docs site</a>):</p>
 
 <ul>
 <li>
@@ -124,7 +129,16 @@ Corresponds to the -k or --key option</li>
 <code>validation_key</code>: Specifies the private key file to use when bootstrapping
 new hosts. See knife-client(1) for more information about the validation
 client.</li>
-</ul><p>For example:</p>
+</ul><p>It is important to note that the <strong>knife server bootstrap</strong> subcommands will
+need write access to the <code>client_key</code> and <code>validation_key</code> files as well as
+write access the their directories in order to create backup files. This means
+that if you do not explicitly set <code>client_key</code> and <code>validation_key</code>, the
+<strong>knife server bootstrap</strong> subcommands will attempt to write to
+<code>"/etc/chef/client.pem"</code> and <code>"/etc/chef/validation.pem."</code> respectively.</p>
+
+<p>For example, you could add lines similar to the following in your user's
+<code>~/.chef/knife.rb</code> or your project's <code>.chef/knife.rb</code> file (assuming you
+have a directory <code>"$HOME/.chef.d"</code> created with <code>mkdir -p $HOME/.chef.d</code>):</p>
 
 <div class="highlight"><pre><span class="n">node_name</span>       <span class="s2">"gramsay"</span>
 <span class="n">client_key</span>      <span class="s2">"</span><span class="si">#{</span><span class="no">ENV</span><span class="o">[</span><span class="s1">'HOME'</span><span class="o">]</span><span class="si">}</span><span class="s2">/.chef.d/gramsay.pem"</span>
