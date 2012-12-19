@@ -1,4 +1,18 @@
-## 0.3.2.dev (unreleased)
+## 0.3.3.dev (unreleased)
+
+
+## 0.3.2 (December 19, 2012)
+
+### Improvements
+
+* Pull request [#13](https://github.com/fnichol/knife-server/pull/13): Relax
+  version constraint on knife-ec2 gem. ([@wpeterson][])
+* Issue [#9](https://github.com/fnichol/knife-server/issues/9): Highlight the
+  need to create set various knife.rb configuration settings. ([@fnichol][])
+* Issue [#10](https://github.com/fnichol/knife-server/issues/10),
+  [#5](https://github.com/fnichol/knife-server/issues/5): Add more
+  instructions in knife.rb setup section as using Knife may be new to many
+  users of this gem. ([@fnichol][])
 
 
 ## 0.3.1 (December 12, 2012)
@@ -71,4 +85,5 @@ The initial release.
 [@fnichol]: https://github.com/fnichol
 [@iafonov]: https://github.com/iafonov
 [@stormsilver]: https://github.com/stormsilver
+[@wpeterson]: https://github.com/wpeterson
 [@xdissent]: https://github.com/xdissent
