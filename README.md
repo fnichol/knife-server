@@ -89,7 +89,8 @@ backup directories, etc.
 
 When creating a Chef Server the validation key and admin client key will
 be installed on your workstation. Therefore, several knife configuration
-options are required (descriptions courtesy of the [Chef wiki][wiki_knife]):
+options are required (descriptions courtesy of the
+[Chef docs site][docs_knife]):
 
 * `node_name`: User or client identity (i.e., name) to use for authenticating
   requests to the Chef Server.
@@ -99,7 +100,16 @@ options are required (descriptions courtesy of the [Chef wiki][wiki_knife]):
   new hosts. See knife-client(1) for more information about the validation
   client.
 
-For example:
+It is important to note that the **knife server bootstrap** subcommands will
+need write access to the `client_key` and `validation_key` files as well as
+write access the their directories in order to create backup files. This means
+that if you do not explicitly set `client_key` and `validation_key`, the
+**knife server bootstrap** subcommands will attempt to write to
+`"/etc/chef/client.pem"` and `"/etc/chef/validation.pem."` respectively.
+
+For example, you could add lines similar to the following in your user's
+`~/.chef/knife.rb` or your project's `.chef/knife.rb` file (assuming you
+have a directory `"$HOME/.chef.d"` created with `mkdir -p $HOME/.chef.d`):
 
 ```ruby
 node_name       "gramsay"
@@ -451,8 +461,8 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [backup_restore]:           https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_restore.rb
 [chef_bootstrap_knife_rb]:  https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
 [chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
+[docs_knife]:               http://docs.opscode.com/config_rb_knife.html
 [jtimberman]:               https://github.com/jtimberman
 [knife-ec2]:                https://github.com/opscode/knife-ec2
 [stevendanna]:              https://github.com/stevendanna
 [vagrant_site]:             http://vagrantup.com/
-[wiki_knife]:               http://wiki.opscode.com/display/chef/Knife#Knife-Knifeconfiguration
