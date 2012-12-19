@@ -81,6 +81,10 @@ Or install it yourself as:
 $ gem install knife-server
 ```
 
+Next, you **must** set up a [knife.rb configuration](#installation-knife) so
+that the shipped Knife subcommands know where to place and modify key files,
+backup directories, etc.
+
 ### <a name="installation-knife"></a> knife.rb Setup
 
 When creating a Chef Server the validation key and admin client key will
