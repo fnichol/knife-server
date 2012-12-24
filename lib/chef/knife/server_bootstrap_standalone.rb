@@ -93,7 +93,7 @@ class Chef
           :user => config[:ssh_user],
           :password => config[:ssh_password],
           :port => config[:ssh_port],
-          :keys => [config[:identity_file]]
+          :keys => [config[:identity_file]].compact
         )
       end
     end
