@@ -1,4 +1,12 @@
-## 0.3.3.dev (unreleased)
+## 0.3.4.dev (unreleased)
+
+
+## 0.3.3 (December 24, 2012)
+
+### Bug fixes
+
+* Pull request [#15](https://github.com/fnichol/knife-server/pull/15): Fix
+  identity-file when `nil` is passed in. ([@erikh][])
 
 
 ## 0.3.2 (December 19, 2012)
