@@ -206,7 +206,7 @@ describe Chef::Knife::ServerBootstrapStandalone do
       it "creates an SSH connection without a password" do
         Knife::Server::SSH.should_receive(:new).with({
           :host => "192.168.0.1", :port => "2345",
-          :user => "root", :password => nil, :keys => [nil]
+          :user => "root", :password => nil, :keys => []
         })
 
         @knife.run
@@ -221,7 +221,7 @@ describe Chef::Knife::ServerBootstrapStandalone do
       it "creates an SSH connection with a password" do
         Knife::Server::SSH.should_receive(:new).with({
           :host => "192.168.0.1", :port => "2345",
-          :user => "root", :password => "snoopy", :keys => [nil]
+          :user => "root", :password => "snoopy", :keys => []
         })
 
         @knife.run
