@@ -1,0 +1,130 @@
+bash -c '
+<%=
+  if knife_config[:bootstrap_proxy]
+    %{export http_proxy="#{knife_config[:bootstrap_proxy]}"}
+  end
+-%>
+
+export hostname="<%= @config[:chef_node_name] %>"
+export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
+export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
+export DEBIAN_FRONTEND=noninteractive
+
+set -ex
+
+exists() {
+  if command -v $1 &>/dev/null
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+setup() {
+  apt-get update
+  apt-get install -y lsb-release
+
+  platform="$(lsb_release -is | tr [[:upper:]] [[:lower:]])"
+  platform_version="$(lsb_release -rs)"
+}
+
+set_hostname_for_ubuntu() {
+  if hostname | grep -q "$hostname" >/dev/null ; then
+    printf "Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+  local hostnames="${hostname} ${host_first}"
+
+  echo $hostname > /etc/hostname
+  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
+    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" \
+      /etc/hosts
+  else
+    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" \
+      /etc/hosts
+  fi
+  service hostname start
+}
+
+set_hostname_for_debian() {
+  if hostname --fqdn | grep -q "^${hostname}$" || hostname --short | grep -q "^${hostname}$" ; then
+    printf "Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+
+  sed -r -i "s/^(127[.]0[.]1[.]1[[:space:]]+).*$/\\1${hostname} ${host_first}/" \
+    /etc/hosts
+  echo $host_first > /etc/hostname
+  hostname -F /etc/hostname
+}
+
+install_omnibus_chef() {
+  apt-get install -y curl bash
+  curl -L https://www.opscode.com/chef/install.sh | bash
+}
+
+download_cookbook() {
+  local server_ckbk_dir="$1/chef-server"
+  local url="https://github.com/opscode-cookbooks/chef-server/archive/master.tar.gz"
+
+  mkdir -p "$server_ckbk_dir"
+  (cd "$server_ckbk_dir" && \
+    curl -sL "$url" | gunzip -c - | tar xf - --strip-components=1)
+}
+
+config_chef_solo() {
+  local tmp_solo="$1"
+
+  mkdir -p $tmp_solo/cookbooks
+  cat > $tmp_solo/solo.rb <<SOLO_RB
+file_cache_path "$tmp_solo"
+cookbook_path   "$tmp_solo/cookbooks"
+SOLO_RB
+
+  cat <<BOOTSTRAP_JSON > $tmp_solo/bootstrap.json
+{
+  "chef-server" : {
+    "prereleases" : true,
+    "chef-server-webui" : {
+      "web_ui_admin_default_password" : "$webui_password"
+    },
+    "rabbitmq" : {
+      "password" : "$amqp_password"
+    }
+  },
+  "run_list" : [ "recipe[chef-server]" ]
+}
+BOOTSTRAP_JSON
+
+  download_cookbook $tmp_solo/cookbooks
+}
+
+run_chef_solo() {
+  local tmp_solo=/tmp/chef-solo
+
+  config_chef_solo $tmp_solo
+  chef-solo -c $tmp_solo/solo.rb -j $tmp_solo/bootstrap.json
+  rm -rf $tmp_solo
+}
+
+cleanup() {
+  for bin in chef-client chef-solo knife ohai shef ; do
+    ln -snf /opt/chef-server/bin/$bin /usr/bin/$bin
+  done ; unset bin
+
+  rm -rf /opt/chef
+}
+
+setup
+set_hostname_for_${platform}
+install_omnibus_chef
+run_chef_solo
+cleanup
+
+echo "-----> Bootstraping Chef Server on ${hostname} is complete."
+'

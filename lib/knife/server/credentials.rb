@@ -21,9 +21,10 @@ require 'fileutils'
 module Knife
   module Server
     class Credentials
-      def initialize(ssh, validation_key_path)
+      def initialize(ssh, validation_key_path, options = {})
         @ssh = ssh
         @validation_key_path = validation_key_path
+        @omnibus = options[:omnibus]
       end
 
       def install_validation_key(suffix = Time.now.to_i)
@@ -32,20 +33,38 @@ module Knife
                        backup_file_path(@validation_key_path, suffix))
         end
 
+        chef10_key = "/etc/chef/validation.pem"
+        omnibus_key = "/etc/chef-server/chef-validator.pem"
+
         File.open(@validation_key_path, "wb") do |f|
-          f.write(@ssh.exec!("cat /etc/chef/validation.pem"))
+          f.write(@ssh.exec!("cat #{omnibus? ? omnibus_key : chef10_key}"))
         end
       end
 
       def create_root_client
-        @ssh.exec!([
+        chef10_cmd = [
           "knife configure",
           "--initial",
           "--server-url http://127.0.0.1:4000",
           "--user root",
           '--repository ""',
           "--defaults --yes"
-        ].join(" "))
+        ].join(" ")
+
+        omnibus_cmd = [
+          "knife configure",
+          "--initial",
+          "--server-url http://127.0.0.1:8000",
+          "--user root",
+          '--repository ""',
+          "--admin-client-name chef-webui",
+          "--admin-client-key /etc/chef-server/chef-webui.pem",
+          "--validation-client-name chef-validator",
+          "--validation-key /etc/chef-server/chef-validator.pem",
+          "--defaults --yes"
+        ].join(" ")
+
+        @ssh.exec!(omnibus? ? omnibus_cmd : chef10_cmd)
       end
 
       def install_client_key(user, client_key_path, suffix = Time.now.to_i)
@@ -64,6 +83,10 @@ module Knife
       end
 
       private
+
+      def omnibus?
+        @omnibus
+      end
 
       def backup_file_path(file_path, suffix)
         parts = file_path.rpartition(".")
