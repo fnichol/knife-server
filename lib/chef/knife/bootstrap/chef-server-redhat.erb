@@ -5,14 +5,16 @@ export hostname="<%= @config[:chef_node_name] %>"
 export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
 export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
 
-export PATH=/usr/local/bin:$PATH
-
 set -e
 
 setup() {
   yum update -y
   platform="$(cat /etc/redhat-release | cut -d" " -f1 | tr [[:upper:]] [[:lower:]])"
   platform_version="$(cat /etc/redhat-release | cut -d" " -f3)"
+
+  yum install ruby rubygems ruby-devel -y
+  yum install readline-devel zlib-devel libyaml-devel openssl-devel \
+    make autoconf automake gcc tar -y
 }
 
 set_hostname_for_centos() {
@@ -57,6 +59,8 @@ BOOTSTRAP_JSON
 }
 
 install_chef_server() {
+  gem install chef --no-ri --no-rdoc
+
   local tmp_solo=/tmp/chef-solo
 
   config_chef_solo $tmp_solo
