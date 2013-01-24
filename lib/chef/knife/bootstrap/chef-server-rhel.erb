@@ -102,7 +102,7 @@ set_hostname_for_scientific() {
   /bin/hostname ${hostname}
 }
 
-set_hostname_for_fedora() {
+set_hostname_for_enterpriseenterprise() {
   if hostname | grep -q "$hostname" > /dev/null ; then
     printf -- "-----> Hostname is correct, so skipping...\n"
     return
