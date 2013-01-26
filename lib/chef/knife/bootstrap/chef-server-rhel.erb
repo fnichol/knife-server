@@ -5,20 +5,16 @@ export hostname="<%= @config[:chef_node_name] %>"
 export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
 export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
 
-set -e
+set -xe
 
 setup() {
   yum update -y
   
-  if [[ grep -qi "Red Hat" /etc/redhat-release ]]; then
+  if grep -qi "Red Hat" /etc/redhat-release
+  then
     platform="redhat"
   else
     platform=$(cat /etc/redhat-release | cut -d" " -f1 | tr [[:upper:]] [[:lower:]])
-  fi
-  if [[ grep -qi "Rawhide" /etc/redhat-release ]]; then
-    platform_version=$(grep -Po '([0-9]+) (?=\(Rawhide\))' /etc/redhat-release)
-  else
-    platform_version=$(grep -Po '(?<=release )[0-9\.]+' /etc/redhat-release)
   fi
 
   yum install ruby rubygems ruby-devel -y
@@ -156,7 +152,6 @@ install_chef_server() {
 
 setup
 set_hostname_for_${platform}
-config_chef_solo
 install_chef_server
 
 printf -- "-----> Bootstraping Chef Server on ${hostname} is complete.\n"
