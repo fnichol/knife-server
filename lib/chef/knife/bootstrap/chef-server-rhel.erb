@@ -150,9 +150,19 @@ install_chef_server() {
   rm -rf $tmp_solo
 }
 
+configure_firewall() {
+  # chef-server-api
+  /usr/sbin/lokkit -p 4000:tcp
+  # chef-server-webui
+  /usr/sbin/lokkit -p 4040:tcp 
+  # ssl proxy to chef-server-api
+  /usr/sbin/lokkit -p 443:tcp  
+}
+
 setup
 set_hostname_for_${platform}
 install_chef_server
+configure_firewall
 
 printf -- "-----> Bootstraping Chef Server on ${hostname} is complete.\n"
 '
