@@ -196,7 +196,16 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
     it "installs a new validation.pem key from the server" do
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem")
+        with(ssh, "/etc/chef/validation.pem", {})
+      credentials.should_receive(:install_validation_key)
+
+      @knife.run
+    end
+
+    it "installs a new validation.pem key from the omnibus server" do
+      @knife.config[:distro] = "omnibus-debian"
+      Knife::Server::Credentials.should_receive(:new).
+        with(ssh, "/etc/chef/validation.pem", {:omnibus => true})
       credentials.should_receive(:install_validation_key)
 
       @knife.run

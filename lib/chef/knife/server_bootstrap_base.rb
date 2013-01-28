@@ -111,8 +111,10 @@ class Chef
       end
 
       def credentials_client
+        opts = {}
+        opts[:omnibus] = true if bootstrap_distro =~ /^omnibus-/
         @credentials_client ||= ::Knife::Server::Credentials.new(
-          ssh_connection, Chef::Config[:validation_key])
+          ssh_connection, Chef::Config[:validation_key], opts)
       end
     end
   end
