@@ -1,4 +1,11 @@
-set -xe
+# taken from http://opscode.com/chef/install.sh
+#
+# only the platform detection is extracted. the script adds a `set -e` at the
+# beginning and two lines at the end that output the platform and
+# platform_version. Everything else is mostly unmodified.
+#
+
+set -e
 
 machine=$(echo -e `uname -m`)
 
