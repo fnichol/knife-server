@@ -52,14 +52,14 @@ class Chef
         install_client_key
       end
 
-      def standalone_bootstrap
+      def standalone_bootstrap(platform=determine_platform)
         ENV['WEBUI_PASSWORD'] = config[:webui_password]
         ENV['AMQP_PASSWORD'] = config[:amqp_password]
         bootstrap = Chef::Knife::Bootstrap.new
         bootstrap.name_args = [ config[:host] ]
         [ :chef_node_name, :ssh_user, :ssh_password, :ssh_port, :identity_file
         ].each { |attr| bootstrap.config[attr] = config[attr] }
-        bootstrap.config[:distro] = bootstrap_distro
+        bootstrap.config[:distro] = platform || bootstrap_distro
         bootstrap.config[:use_sudo] = true unless config[:ssh_user] == "root"
         bootstrap
       end
