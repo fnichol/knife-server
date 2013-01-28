@@ -20,6 +20,7 @@ setup() {
   yum install ruby rubygems ruby-devel -y
   yum install readline-devel zlib-devel libyaml-devel openssl-devel \
     make autoconf automake gcc tar -y
+  /usr/bin/gem update --system
 }
 
 set_hostname_for_centos() {
