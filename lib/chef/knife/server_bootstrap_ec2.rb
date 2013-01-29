@@ -108,13 +108,13 @@ class Chef
         install_client_key
       end
 
-      def ec2_bootstrap(platform=determine_platform)
+      def ec2_bootstrap
         ENV['WEBUI_PASSWORD'] = config[:webui_password]
         ENV['AMQP_PASSWORD'] = config[:amqp_password]
         bootstrap = Chef::Knife::Ec2ServerCreate.new
         bootstrap.config.merge!(config)
         bootstrap.config[:tags] = bootstrap_tags
-        bootstrap.config[:distro] = platform || bootstrap_distro
+        bootstrap.config[:distro] = bootstrap_distro
         bootstrap
       end
 

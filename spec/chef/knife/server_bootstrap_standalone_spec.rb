@@ -33,6 +33,7 @@ describe Chef::Knife::ServerBootstrapStandalone do
     @stderr = StringIO.new
     @knife.ui.stub!(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
+    @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
   end
 
   describe "#standalone_bootstrap" do
@@ -98,14 +99,14 @@ describe Chef::Knife::ServerBootstrapStandalone do
     it "configs the bootstrap's distro to chef-server-debian by default" do
       @knife.config.delete(:distro)
 
-      bootstrap.config[:distro].should eq("chef-server-debian")
+      bootstrap.config[:distro].should eq("chef10/debian")
     end
 
     it "configs the bootstrap's distro value driven off platform value" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
 
-      bootstrap.config[:distro].should eq("chef-server-freebsd")
+      bootstrap.config[:distro].should eq("chef10/freebsd")
     end
 
     it "configs the bootstrap's ENV with the webui password" do
@@ -196,14 +197,14 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
     it "installs a new validation.pem key from the server" do
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem", {})
+        with(ssh, "/etc/chef/validation.pem", {:omnibus => false})
       credentials.should_receive(:install_validation_key)
 
       @knife.run
     end
 
     it "installs a new validation.pem key from the omnibus server" do
-      @knife.config[:distro] = "omnibus-debian"
+      @knife.config[:chef_server_version] = "11"
       Knife::Server::Credentials.should_receive(:new).
         with(ssh, "/etc/chef/validation.pem", {:omnibus => true})
       credentials.should_receive(:install_validation_key)

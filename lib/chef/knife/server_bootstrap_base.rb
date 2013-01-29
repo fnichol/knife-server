@@ -145,7 +145,7 @@ class Chef
 
       def bootstrap_distro
         return config[:distro] if config[:distro]
-        return "auto" if config[:platform] == "auto"
+        return determine_platform if config[:platform] == "auto"
         return construct_distro(config[:platform])
       end
 

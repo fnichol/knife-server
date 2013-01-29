@@ -33,6 +33,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
     @stderr = StringIO.new
     @knife.ui.stub!(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
+    @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
   end
 
   let(:connection) { mock(Fog::Compute::AWS) }
@@ -102,17 +103,25 @@ describe Chef::Knife::ServerBootstrapEc2 do
       bootstrap.config[:distro].should eq("distro-praha")
     end
 
-    it "configs the bootstrap's distro to chef-server-debian by default" do
+    it "configs the bootstrap's distro to determine_platform's results by default" do
       @knife.config.delete(:distro)
 
-      bootstrap.config[:distro].should eq("chef-server-debian")
+      bootstrap.config[:distro].should eq("chef10/debian")
     end
 
     it "configs the bootstrap's distro value driven off platform value" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
 
-      bootstrap.config[:distro].should eq("chef-server-freebsd")
+      bootstrap.config[:distro].should eq("chef10/freebsd")
+    end
+
+    it "configs the bootstrap's distro based on chef_server_version and platform" do
+      @knife.config.delete(:distro)
+      @knife.config[:platform] = "freebsd"
+      @knife.config[:chef_server_version] = "11"
+
+      bootstrap.config[:distro].should eq("chef11/freebsd")
     end
 
     it "configs the bootstrap's ENV with the webui password" do
@@ -257,14 +266,14 @@ describe Chef::Knife::ServerBootstrapEc2 do
         :port => "2345", :keys => ["~/.ssh/mykey_dsa"]
       })
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem", {})
+        with(ssh, "/etc/chef/validation.pem", {:omnibus => false})
       credentials.should_receive(:install_validation_key)
 
       @knife.run
     end
 
     it "installs a new validation.pem key from the omnibus server" do
-      @knife.config[:distro] = "omnibus-debian"
+      @knife.config[:chef_server_version] = "11"
       Knife::Server::SSH.should_receive(:new).with({
         :host => "grapes.wrath", :user => "root",
         :port => "2345", :keys => ["~/.ssh/mykey_dsa"]
