@@ -35,6 +35,12 @@ class Chef
             :long => "--node-name NAME",
             :description => "The name of your new Chef Server"
 
+          option :chef_server_version,
+            :short => "-C VERSION",
+            :long => "--chef-server-version VERSION",
+            :description => "The version of chef you wish to use for the server",
+            :default => "10"
+
           option :platform,
             :short => "-P PLATFORM",
             :long => "--platform PLATFORM",
@@ -129,19 +135,22 @@ class Chef
                  when "sles", "suse"
                    "suse"
                  end
-        # FIXME move this once we're transitioning.
-        return "chef-server-#{normal}"
+
+        return construct_distro(normal)
+      end
+
+      def construct_distro(platform)
+        "chef#{config[:chef_server_version]}/#{platform}"
       end
 
       def bootstrap_distro
         return config[:distro] if config[:distro]
         return "auto" if config[:platform] == "auto"
-        return "chef-server-#{config[:platform]}"
+        return construct_distro(config[:platform])
       end
 
       def credentials_client
-        opts = {}
-        opts[:omnibus] = true if bootstrap_distro =~ /^omnibus-/
+        opts = { :omnibus => config[:chef_server_version] > '10' }
         @credentials_client ||= ::Knife::Server::Credentials.new(
           ssh_connection, Chef::Config[:validation_key], opts)
       end
