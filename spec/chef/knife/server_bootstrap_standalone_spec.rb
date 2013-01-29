@@ -36,6 +36,39 @@ describe Chef::Knife::ServerBootstrapStandalone do
     @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
   end
 
+  describe "distro selection" do
+    it "should auto-select from determine_platform by default" do
+      @knife.config.delete(:distro)
+      @knife.send(:bootstrap_distro).should eq("chef10/debian")
+      @knife.stub(:determine_platform) { "chef10/rhel" }
+      @knife.send(:bootstrap_distro).should eq("chef10/rhel")
+    end
+
+    it "should construct the distro path based on the chef server version and platform" do
+      @knife.send(:construct_distro, "rhel").should eq("chef10/rhel")
+      @knife.config[:chef_server_version] = "11"
+      @knife.send(:construct_distro, "rhel").should eq("chef11/rhel")
+    end
+
+    it "should map the distro template based on a tuple of (platform, platform_version)" do
+      {
+        "el" => "rhel",
+        "redhat" => "rhel",
+        "debian" => "debian",
+        "ubuntu" => "debian",
+        "solaris2" => "solaris",
+        "solaris" => "solaris",
+        "sles" => "suse",
+        "suse" => "suse"
+      }.each do |key, value|
+        @knife.config[:chef_server_version] = "10"
+        @knife.send(:distro_auto_map, key, 0).should eq("chef10/#{value}")
+        @knife.config[:chef_server_version] = "11"
+        @knife.send(:distro_auto_map, key, 0).should eq("chef11/#{value}")
+      end
+    end
+  end
+
   describe "#standalone_bootstrap" do
     before do
       @knife.config[:host] = "172.0.10.21"
@@ -132,6 +165,15 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
       bootstrap.config[:use_sudo].should_not be_true
     end
+
+    describe "#bootstrap_auto?" do
+      it "should always be true if it was set via --platform, even if the distro changes" do
+        @knife.config[:platform] = "auto"
+        bootstrap.config[:distro].should_not eq("auto")
+        @knife.send(:bootstrap_auto?).should be_true
+      end
+    end
+
   end
 
   describe "#run" do

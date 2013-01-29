@@ -113,7 +113,7 @@ class Chef
       end
 
       def bootstrap_auto?
-        bootstrap_distro == "auto"
+        config[:platform] == "auto"
       end
 
       def distro_auto_map(platform, platform_version)
