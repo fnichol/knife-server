@@ -33,6 +33,9 @@ describe Chef::Knife::ServerBootstrapEc2 do
     @stderr = StringIO.new
     @knife.ui.stub!(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
+    @knife.config[:chef_server_version] = "10"
+    @knife.config[:platform] = "auto"
+    @knife.config[:ssh_user] = "root"
     @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
   end
 
