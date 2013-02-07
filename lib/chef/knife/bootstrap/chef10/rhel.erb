@@ -140,7 +140,13 @@ BOOTSTRAP_JSON
 }
 
 install_chef_server() {
-  gem install chef -v $chef_version --no-ri --no-rdoc
+  # hack, ensure net-ssh 2.2.2 and net-ssh-multi 1.1.0 is installed before
+  # installing chef, otherwise rubygems will explode trying to run chef
+
+  gem install net-ssh -v 2.2.2 --no-ri --no-rdoc
+  gem install net-ssh-gateway -v 1.1.0 --no-ri --no-rdoc
+  gem install net-ssh-multi -v 1.1.0 --no-ri --no-rdoc
+  gem install chef -v $chef_version --no-ri --no-rdoc 
 
   local tmp_solo=/tmp/chef-solo
 
