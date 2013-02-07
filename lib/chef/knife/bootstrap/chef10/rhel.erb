@@ -18,6 +18,15 @@ setup() {
     platform=$(cat /etc/redhat-release | cut -d" " -f1 | tr [[:upper:]] [[:lower:]])
   fi
 
+  # throttle selinux, people can set it back up themselves if they want.
+  (setenforce Permissive || exit 0)
+  if [ -f /etc/selinux/config ]
+  then
+    cd /etc/selinux
+    sed -i.bak 's/SELINUX=enforcing/SELINUX=permissive/g' config
+    cd $OLDPWD
+  fi
+
   yum install ruby rubygems ruby-devel -y
   yum install readline-devel zlib-devel libyaml-devel openssl-devel \
     make autoconf automake gcc tar -y
