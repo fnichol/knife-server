@@ -4,6 +4,7 @@ bash -c '
 export hostname="<%= @config[:chef_node_name] %>"
 export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
 export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
+export chef_version="<%= Chef::VERSION %>"
 
 set -e
 
@@ -139,7 +140,7 @@ BOOTSTRAP_JSON
 }
 
 install_chef_server() {
-  gem install chef --no-ri --no-rdoc
+  gem install chef -v $chef_version --no-ri --no-rdoc
 
   local tmp_solo=/tmp/chef-solo
 
