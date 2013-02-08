@@ -74,7 +74,7 @@ set_hostname_for_enterpriseenterprise() {
 
 install_omnibus_chef() {
   yum install -y curl bash
-  curl -L https://www.opscode.com/chef/install.sh | bash
+  curl -L https://www.opscode.com/chef/install.sh | bash -s -- -v "${chef_version}"
 }
 
 download_cookbook() {
