@@ -26,11 +26,6 @@ setup() {
     sed -i.bak 's/SELINUX=enforcing/SELINUX=permissive/g' config
     cd $OLDPWD
   fi
-
-  yum install ruby rubygems ruby-devel -y
-  yum install readline-devel zlib-devel libyaml-devel openssl-devel \
-    make autoconf automake gcc tar libstdc++-devel gcc-c++ -y
-  /usr/bin/gem update --system
 }
 
 set_hostname_for_platform() {
