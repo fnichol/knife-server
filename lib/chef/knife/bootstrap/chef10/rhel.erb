@@ -9,8 +9,6 @@ export chef_version="<%= Chef::VERSION %>"
 set -e
 
 setup() {
-  yum update -y
-  
   if grep -qi "Red Hat" /etc/redhat-release
   then
     platform="redhat"
