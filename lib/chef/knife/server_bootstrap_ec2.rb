@@ -22,6 +22,8 @@ class Chef
   class Knife
     class ServerBootstrapEc2 < Knife
 
+      banner "knife server bootstrap ec2 (options)"
+
       include Knife::ServerBootstrapBase
 
       deps do
@@ -31,52 +33,11 @@ class Chef
         require 'chef/knife/ec2_server_create'
         require 'fog'
         Chef::Knife::Ec2ServerCreate.load_deps
+
+        current_options = self.options
+        self.options = Chef::Knife::Ec2ServerCreate.options.dup
+        self.options.merge!(current_options)
       end
-
-      banner "knife server bootstrap ec2 (options)"
-
-      option :aws_access_key_id,
-        :short => "-A ID",
-        :long => "--aws-access-key-id KEY",
-        :description => "Your AWS Access Key ID",
-        :proc => Proc.new { |key| Chef::Config[:knife][:aws_access_key_id] = key }
-
-      option :aws_secret_access_key,
-        :short => "-K SECRET",
-        :long => "--aws-secret-access-key SECRET",
-        :description => "Your AWS API Secret Access Key",
-        :proc => Proc.new { |key| Chef::Config[:knife][:aws_secret_access_key] = key }
-      option :region,
-        :long => "--region REGION",
-        :description => "Your AWS region",
-        :default => "us-east-1",
-        :proc => Proc.new { |key| Chef::Config[:knife][:region] = key }
-
-      option :ssh_key_name,
-        :short => "-S KEY",
-        :long => "--ssh-key KEY",
-        :description => "The AWS SSH key id",
-        :proc => Proc.new { |key| Chef::Config[:knife][:aws_ssh_key_id] = key }
-
-      option :flavor,
-        :short => "-f FLAVOR",
-        :long => "--flavor FLAVOR",
-        :description => "The flavor of server (m1.small, m1.medium, etc)",
-        :proc => Proc.new { |f| Chef::Config[:knife][:flavor] = f },
-        :default => "m1.small"
-
-      option :image,
-        :short => "-I IMAGE",
-        :long => "--image IMAGE",
-        :description => "The AMI for the server",
-        :proc => Proc.new { |i| Chef::Config[:knife][:image] = i }
-
-      option :availability_zone,
-        :short => "-Z ZONE",
-        :long => "--availability-zone ZONE",
-        :description => "The Availability Zone",
-        :default => "us-east-1b",
-        :proc => Proc.new { |key| Chef::Config[:knife][:availability_zone] = key }
 
       option :security_groups,
         :short => "-G X,Y,Z",
@@ -84,20 +45,6 @@ class Chef
         :description => "The security groups for this server",
         :default => ["infrastructure"],
         :proc => Proc.new { |groups| groups.split(',') }
-
-      option :tags,
-        :short => "-T T=V[,T=V,...]",
-        :long => "--tags Tag=Value[,Tag=Value...]",
-        :description => "The tags for this server",
-        :proc => Proc.new { |tags| tags.split(',') }
-
-      option :ebs_size,
-        :long => "--ebs-size SIZE",
-        :description => "The size of the EBS volume in GB, for EBS-backed instances"
-
-      option :ebs_no_delete_on_term,
-        :long => "--ebs-no-delete-on-term",
-        :description => "Do not delete EBS volumn on instance termination"
 
       def run
         validate!

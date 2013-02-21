@@ -22,6 +22,8 @@ class Chef
   class Knife
     class ServerBootstrapStandalone < Knife
 
+      banner "knife server bootstrap standalone (options)"
+
       include Knife::ServerBootstrapBase
 
       deps do
@@ -29,19 +31,16 @@ class Chef
         require 'knife/server/credentials'
         require 'chef/knife/bootstrap'
         Chef::Knife::Bootstrap.load_deps
-      end
 
-      banner "knife server bootstrap standalone (options)"
+        current_options = self.options
+        self.options = Chef::Knife::Bootstrap.options.dup
+        self.options.merge!(current_options)
+      end
 
       option :host,
         :short => "-H FQDN_OR_IP",
         :long => "--host FQDN_OR_IP",
         :description => "Hostname or IP address of host to bootstrap"
-
-      option :ssh_password,
-        :short => "-P PASSWORD",
-        :long => "--ssh-password PASSWORD",
-        :description => "The ssh password"
 
       def run
         validate!
