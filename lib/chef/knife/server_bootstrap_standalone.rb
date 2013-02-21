@@ -56,10 +56,14 @@ class Chef
         ENV['AMQP_PASSWORD'] = config[:amqp_password]
         bootstrap = Chef::Knife::Bootstrap.new
         bootstrap.name_args = [ config[:host] ]
-        [ :chef_node_name, :ssh_user, :ssh_password, :ssh_port, :identity_file
-        ].each { |attr| bootstrap.config[attr] = config[attr] }
+        Chef::Knife::Bootstrap.options.keys.each do |attr|
+          bootstrap.config[attr] = config_val(attr)
+        end
+        [:verbosity].each do |attr|
+          bootstrap.config[attr] = config_val(attr)
+        end
         bootstrap.config[:distro] = bootstrap_distro
-        bootstrap.config[:use_sudo] = true unless config[:ssh_user] == "root"
+        bootstrap.config[:use_sudo] = true unless config_val(:ssh_user) == "root"
         bootstrap
       end
 
@@ -79,21 +83,27 @@ class Chef
       def check_ssh_connection
         ssh_connection.exec! "hostname -f"
       rescue Net::SSH::AuthenticationFailed
-        ui.warn("Failed to authenticate #{config[:ssh_user]} - " +
+        ui.warn("Failed to authenticate #{config_val(:ssh_user)} - " +
                 "trying password auth")
         config[:ssh_password] = ui.ask(
-          "Enter password for #{config[:ssh_user]}@#{config[:host]}: "
+          "Enter password for #{config_val(:ssh_user)}@#{config_val(:host)}: "
         ) { |q| q.echo = false }
       end
 
       def ssh_connection
-        ::Knife::Server::SSH.new(
-          :host => config[:host],
-          :user => config[:ssh_user],
-          :password => config[:ssh_password],
-          :port => config[:ssh_port],
-          :keys => [config[:identity_file]].compact
-        )
+        opts = {
+          :host => config_val(:host),
+          :user => config_val(:ssh_user),
+          :password => config_val(:ssh_password),
+          :port => config_val(:ssh_port),
+          :keys => [config_val(:identity_file)].compact
+        }
+        if config_val(:host_key_verify) == false
+          opts[:user_known_hosts_file] = "/dev/null"
+          opts[:paranoid] = false
+        end
+
+        ::Knife::Server::SSH.new(opts)
       end
     end
   end

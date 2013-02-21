@@ -79,12 +79,18 @@ class Chef
       end
 
       def bootstrap_distro
-        config[:distro] || "chef-server-#{config[:platform]}"
+        config[:distro] || "chef-server-#{config_val(:platform)}"
       end
 
       def credentials_client
         @credentials_client ||= ::Knife::Server::Credentials.new(
           ssh_connection, Chef::Config[:validation_key])
+      end
+
+      def config_val(key)
+        key = key.to_sym
+        default_value = options[key] && options[key][:default]
+        config.fetch(key, Chef::Config[:knife].fetch(key, default_value))
       end
     end
   end

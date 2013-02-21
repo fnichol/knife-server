@@ -59,7 +59,12 @@ class Chef
         ENV['WEBUI_PASSWORD'] = config[:webui_password]
         ENV['AMQP_PASSWORD'] = config[:amqp_password]
         bootstrap = Chef::Knife::Ec2ServerCreate.new
-        bootstrap.config.merge!(config)
+        Chef::Knife::Ec2ServerCreate.options.keys.each do |attr|
+          bootstrap.config[attr] = config_val(attr)
+        end
+        [:verbosity].each do |attr|
+          bootstrap.config[attr] = config_val(attr)
+        end
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap
@@ -68,16 +73,16 @@ class Chef
       def ec2_connection
         @ec2_connection ||= Fog::Compute.new(
           :provider => 'AWS',
-          :aws_access_key_id => Chef::Config[:knife][:aws_access_key_id],
-          :aws_secret_access_key => Chef::Config[:knife][:aws_secret_access_key],
-          :region => Chef::Config[:knife][:region]
+          :aws_access_key_id => config_val(:aws_access_key_id),
+          :aws_secret_access_key => config_val(:aws_secret_access_key),
+          :region => config_val(:region)
         )
       end
 
       def server_dns_name
         server = ec2_connection.servers.find do |s|
           s.state == "running" &&
-            s.tags['Name'] == config[:chef_node_name] &&
+            s.tags['Name'] == config_val(:chef_node_name) &&
             s.tags['Role'] == 'chef_server'
         end
 
@@ -93,23 +98,31 @@ class Chef
         end
       end
 
-      def config_security_group(name = config[:security_groups].first)
+      def config_security_group(name = nil)
+        name = config_val(:security_groups).first if name.nil?
+
         ::Knife::Server::Ec2SecurityGroup.new(ec2_connection, ui).
           configure_chef_server_group(name, :description => "#{name} group")
       end
 
       def bootstrap_tags
-        Hash[Array(config[:tags]).map { |t| t.split('=') }].
+        Hash[Array(config_val(:tags)).map { |t| t.split('=') }].
           merge({"Role" => "chef_server"}).map { |k,v| "#{k}=#{v}" }
       end
 
       def ssh_connection
-        ::Knife::Server::SSH.new(
+        opts = {
           :host => server_dns_name,
-          :user => config[:ssh_user],
-          :port => config[:ssh_port],
-          :keys => [config[:identity_file]]
-        )
+          :user => config_val(:ssh_user),
+          :port => config_val(:ssh_port),
+          :keys => [config_val(:identity_file)].compact
+        }
+        if config_val(:host_key_verify) == false
+          opts[:user_known_hosts_file] = "/dev/null"
+          opts[:paranoid] = false
+        end
+
+        ::Knife::Server::SSH.new(opts)
       end
     end
   end
