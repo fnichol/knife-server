@@ -30,13 +30,24 @@ class Chef
         require 'knife/server/ssh'
         require 'knife/server/credentials'
         require 'knife/server/ec2_security_group'
-        require 'chef/knife/ec2_server_create'
-        require 'fog'
-        Chef::Knife::Ec2ServerCreate.load_deps
 
-        current_options = self.options
-        self.options = Chef::Knife::Ec2ServerCreate.options.dup
-        self.options.merge!(current_options)
+        begin
+          require 'chef/knife/ec2_server_create'
+          require 'fog'
+          Chef::Knife::Ec2ServerCreate.load_deps
+
+          current_options = self.options
+          self.options = Chef::Knife::Ec2ServerCreate.options.dup
+          self.options.merge!(current_options)
+        rescue LoadError => ex
+          ui.error [
+            "Knife plugin knife-ec2 could not be loaded.",
+            "Please add the knife-ec2 gem to your Gemfile or",
+            "install the gem manually with `gem install knife-ec2'.",
+            "(#{ex.message})"
+          ].join(" ")
+          exit 1
+        end
       end
 
       option :security_groups,
