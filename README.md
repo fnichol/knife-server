@@ -1,6 +1,7 @@
 # <a name="title"></a> Knife::Server
 
-[![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/fnichol/knife-server)
+[![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server)
+[![Code Climate](https://codeclimate.com/github/fnichol/knife-server.png)](https://codeclimate.com/github/fnichol/knife-server)
 
 An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
 Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
