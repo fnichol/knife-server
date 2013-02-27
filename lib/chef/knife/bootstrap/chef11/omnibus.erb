@@ -12,7 +12,7 @@ bash -c '
   end
 -%>
 set -e
-<%= %{set -x} if @config[:verbosity] > 0 -%>
+<%= %{set -x} if @config[:knife] && @config[:knife][:log_level] == :debug -%>
 
 <%=
   if knife_config[:bootstrap_proxy]

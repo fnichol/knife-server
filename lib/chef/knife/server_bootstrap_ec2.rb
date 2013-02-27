@@ -73,9 +73,6 @@ class Chef
         Chef::Knife::Ec2ServerCreate.options.keys.each do |attr|
           bootstrap.config[attr] = config_val(attr)
         end
-        [:verbosity].each do |attr|
-          bootstrap.config[attr] = config_val(attr)
-        end
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap

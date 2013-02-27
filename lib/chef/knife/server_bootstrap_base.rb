@@ -60,6 +60,13 @@ class Chef
             :long => "--amqp-password SECRET",
             :description => "Initial password for AMQP, default is 'chefchef'",
             :default => "chefchef"
+
+          option :log_level,
+            :short => "-l LEVEL",
+            :long => "--log_level LEVEL",
+            :description  => "Set the log level (debug, info, warn, error, fatal)",
+            :proc => Proc.new { |v| Chef::Config[:knife][:log_level] = v.to_sym },
+            :default => :error
         end
       end
 
