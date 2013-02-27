@@ -1,57 +1,39 @@
 bash -c '
+<%
+  require 'erb'
+
+  def render(partial)
+    partial_path = Gem.find_files(File.join(
+      %W{chef knife bootstrap _#{partial}}
+    )).first
+    raise ArgumentError, "Partial _#{partial} not found" if partial_path.nil?
+
+    ERB.new(IO.read(partial_path)).result(binding)
+  end
+-%>
+set -e
+<%= %{set -x} if @config[:knife] && @config[:knife][:log_level] == :debug -%>
+
 <%=
   if knife_config[:bootstrap_proxy]
     %{export http_proxy="#{knife_config[:bootstrap_proxy]}"}
   end
 -%>
-
 export hostname="<%= @config[:chef_node_name] %>"
 export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
 export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
+
 export DEBIAN_FRONTEND=noninteractive
 
-set -x
+<%= render "common.sh" %>
+
+<%= render "platform_and_version.sh" %>
+
+<%= render "set_hostname.sh" %>
 
 setup() {
   apt-get update
   apt-get install -y lsb-release
-
-  platform="$(lsb_release -is | tr [[:upper:]] [[:lower:]])"
-  platform_version="$(lsb_release -rs)"
-}
-
-set_hostname_for_ubuntu() {
-  if hostname | grep -q "$hostname" >/dev/null ; then
-    printf "Hostname is correct, so skipping...\n"
-    return
-  fi
-
-  local host_first="$(echo $hostname | cut -d . -f 1)"
-  local hostnames="${hostname} ${host_first}"
-
-  echo $hostname > /etc/hostname
-  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
-    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" \
-      /etc/hosts
-  else
-    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" \
-      /etc/hosts
-  fi
-  service hostname start
-}
-
-set_hostname_for_debian() {
-  if hostname --fqdn | grep -q "^${hostname}$" || hostname --short | grep -q "^${hostname}$" ; then
-    printf "Hostname is correct, so skipping...\n"
-    return
-  fi
-
-  local host_first="$(echo $hostname | cut -d . -f 1)"
-
-  sed -r -i "s/^(127[.]0[.]1[.]1[[:space:]]+).*$/\\1${hostname} ${host_first}/" \
-    /etc/hosts
-  echo $host_first > /etc/hostname
-  hostname -F /etc/hostname
 }
 
 add_opscode_apt_repo() {
@@ -123,5 +105,5 @@ add_opscode_apt_repo
 install_chef_server
 enable_ssl_proxy
 
-printf -- "-----> Bootstraping Chef Server on ${hostname} is complete.\n"
+banner "Bootstraping Chef Server on ${hostname} is complete."
 '
