@@ -31,7 +31,8 @@
         <hr>
 
         <section id="main_content">
-          <p><a href="http://travis-ci.org/fnichol/knife-server"><img src="https://secure.travis-ci.org/fnichol/knife-server.png?branch=master" alt="Build Status"></a> <a href="https://codeclimate.com/github/fnichol/knife-server"><img src="https://codeclimate.com/badge.png" alt="Code Climate"></a></p>
+          <p><a href="http://travis-ci.org/fnichol/knife-server"><img src="https://secure.travis-ci.org/fnichol/knife-server.png?branch=master" alt="Build Status"></a>
+<a href="https://codeclimate.com/github/fnichol/knife-server"><img src="https://codeclimate.com/github/fnichol/knife-server.png" alt="Code Climate"></a></p>
 
 <p>An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
 Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
@@ -96,7 +97,13 @@ Well except for old client keys on your nodes, but this is being looked into.</p
 <div class="highlight"><pre><span class="n">gem</span> <span class="s1">'knife-server'</span>
 </pre></div>
 
-<p>And then execute:</p>
+<p><strong>Note</strong> If you want to use the <code>bootstrap ec2</code> subcommand you will need to
+explicitly add this to your Gemfile with:</p>
+
+<div class="highlight"><pre><span class="n">gem</span> <span class="s1">'knife-ec2'</span>
+</pre></div>
+
+<p>Finally execute:</p>
 
 <div class="highlight"><pre><span class="nv">$ </span>bundle
 </pre></div>
@@ -105,6 +112,9 @@ Well except for old client keys on your nodes, but this is being looked into.</p
 
 <div class="highlight"><pre><span class="nv">$ </span>gem install knife-server
 </pre></div>
+
+<p>(Don't forget a <code>gem install knife-ec2</code> if using the <code>bootstrap ec2</code>
+subcommand).</p>
 
 <p>Next, you <strong>must</strong> set up a <a href="#installation-knife">knife.rb configuration</a> so
 that the shipped Knife subcommands know where to place and modify key files,
@@ -259,6 +269,10 @@ use non-root SSH users (<code>"ubuntu"</code> for Ubuntu AMIs).</p>
 
 <h3>
 <a name="knife-server-bootstrap-ec2"></a> knife server bootstrap ec2</h3>
+
+<p><strong>Note:</strong> You must install the <a href="https://github.com/opscode/knife-ec2">knife-ec2 gem</a> to use this
+subcommand. This was done to keep the dependencies of this library lighter and
+to make future cloud adapter support easier to add.</p>
 
 <p>Provisions an EC2 instance on the Amazon Web Services (AWS) cloud and sets
 up an Open Source Chef Server as described <a href="#knife-server-bootstrap">above</a>.
