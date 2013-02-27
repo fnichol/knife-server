@@ -33,8 +33,8 @@ class Chef
           option :platform,
             :short => "-P PLATFORM",
             :long => "--platform PLATFORM",
-            :description => "The platform type that will be bootstrapped (debian)",
-            :default => "debian"
+            :description => "The platform type that will be bootstrapped (omnibus)",
+            :default => "omnibus"
 
           option :distro,
             :short => "-d DISTRO",
@@ -83,8 +83,10 @@ class Chef
       end
 
       def credentials_client
+        opts = {}
+        opts[:omnibus] = true if bootstrap_distro =~ /-omnibus$/
         @credentials_client ||= ::Knife::Server::Credentials.new(
-          ssh_connection, Chef::Config[:validation_key])
+          ssh_connection, Chef::Config[:validation_key], opts)
       end
 
       def config_val(key)
