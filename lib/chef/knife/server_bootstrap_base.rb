@@ -39,8 +39,8 @@ class Chef
           option :platform,
             :short => "-P PLATFORM",
             :long => "--platform PLATFORM",
-            :description => "The platform type that will be bootstrapped (debian)",
-            :default => "auto"
+            :description => "The platform type that will be bootstrapped (omnibus)",
+            :default => "omnibus"
 
           option :distro,
             :short => "-d DISTRO",

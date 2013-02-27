@@ -52,6 +52,7 @@ module Knife
         ].join(" ")
 
         omnibus_cmd = [
+          "echo '#{ENV['WEBUI_PASSWORD']}' |",
           "knife configure",
           "--initial",
           "--server-url http://127.0.0.1:8000",
@@ -94,11 +95,24 @@ module Knife
       end
 
       def create_user_client(user)
-        @ssh.exec!([
+        chef10_cmd = [
           "knife client create",
           user,
-          "--admin --file /tmp/chef-client-#{user}.pem --disable-editing"
-        ].join(" "))
+          "--admin",
+          "--file /tmp/chef-client-#{user}.pem",
+          "--disable-editing"
+        ].join(" ")
+
+        omnibus_cmd = [
+          "knife user create",
+          user,
+          "--admin",
+          "--file /tmp/chef-client-#{user}.pem",
+          "--disable-editing",
+          "--password #{ENV['WEBUI_PASSWORD']}"
+        ].join(" ")
+
+        @ssh.exec!(omnibus? ? omnibus_cmd : chef10_cmd)
       end
     end
   end

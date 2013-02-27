@@ -132,10 +132,10 @@ describe Chef::Knife::ServerBootstrapStandalone do
       bootstrap.config[:distro].should eq("distro-praha")
     end
 
-    it "configs the bootstrap's distro to chef-server-debian by default" do
+    it "configs the bootstrap's distro to chef-server-omnibus by default" do
       @knife.config.delete(:distro)
 
-      bootstrap.config[:distro].should eq("chef10/debian")
+      bootstrap.config[:distro].should eq("chef-server-omnibus")
     end
 
     it "configs the bootstrap's distro value driven off platform value" do
@@ -241,8 +241,9 @@ describe Chef::Knife::ServerBootstrapStandalone do
     end
 
     it "installs a new validation.pem key from the server" do
+      @knife.config[:distro] = "yabba-debian"
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem", {:omnibus => false})
+        with(ssh, "/etc/chef/validation.pem", {})
       credentials.should_receive(:install_validation_key)
 
       @knife.run

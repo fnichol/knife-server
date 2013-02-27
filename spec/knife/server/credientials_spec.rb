@@ -39,6 +39,12 @@ describe Knife::Server::Credentials do
     FileUtils.mkdir_p(File.dirname(client_key_path))
     File.new(validation_key_path, "wb")  { |f| f.write("thekey") }
     File.new(client_key_path, "wb")  { |f| f.write("clientkey") }
+
+    ENV['_SPEC_WEBUI_PASSWORD'] = ENV['WEBUI_PASSWORD']
+  end
+
+  after do
+    ENV['WEBUI_PASSWORD'] = ENV.delete('_SPEC_WEBUI_PASSWORD')
   end
 
   describe "#install_validation_key" do
@@ -88,8 +94,10 @@ describe Knife::Server::Credentials do
       subject.create_root_client
     end
 
-    it "creates an initial client key on the omnibus server" do
+    it "creates an initial user on the omnibus server" do
+      ENV['WEBUI_PASSWORD'] = 'doowah'
       ssh.should_receive(:exec!).with([
+        "echo 'doowah' |",
         'knife configure --initial --server-url http://127.0.0.1:8000',
         '--user root --repository "" --admin-client-name chef-webui',
         '--admin-client-key /etc/chef-server/chef-webui.pem',
