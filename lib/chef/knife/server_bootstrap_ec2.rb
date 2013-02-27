@@ -22,61 +22,33 @@ class Chef
   class Knife
     class ServerBootstrapEc2 < Knife
 
+      banner "knife server bootstrap ec2 (options)"
+
       include Knife::ServerBootstrapBase
 
       deps do
         require 'knife/server/ssh'
         require 'knife/server/credentials'
         require 'knife/server/ec2_security_group'
-        require 'chef/knife/ec2_server_create'
-        require 'fog'
-        Chef::Knife::Ec2ServerCreate.load_deps
+
+        begin
+          require 'chef/knife/ec2_server_create'
+          require 'fog'
+          Chef::Knife::Ec2ServerCreate.load_deps
+
+          current_options = self.options
+          self.options = Chef::Knife::Ec2ServerCreate.options.dup
+          self.options.merge!(current_options)
+        rescue LoadError => ex
+          ui.error [
+            "Knife plugin knife-ec2 could not be loaded.",
+            "Please add the knife-ec2 gem to your Gemfile or",
+            "install the gem manually with `gem install knife-ec2'.",
+            "(#{ex.message})"
+          ].join(" ")
+          exit 1
+        end
       end
-
-      banner "knife server bootstrap ec2 (options)"
-
-      option :aws_access_key_id,
-        :short => "-A ID",
-        :long => "--aws-access-key-id KEY",
-        :description => "Your AWS Access Key ID",
-        :proc => Proc.new { |key| Chef::Config[:knife][:aws_access_key_id] = key }
-
-      option :aws_secret_access_key,
-        :short => "-K SECRET",
-        :long => "--aws-secret-access-key SECRET",
-        :description => "Your AWS API Secret Access Key",
-        :proc => Proc.new { |key| Chef::Config[:knife][:aws_secret_access_key] = key }
-      option :region,
-        :long => "--region REGION",
-        :description => "Your AWS region",
-        :default => "us-east-1",
-        :proc => Proc.new { |key| Chef::Config[:knife][:region] = key }
-
-      option :ssh_key_name,
-        :short => "-S KEY",
-        :long => "--ssh-key KEY",
-        :description => "The AWS SSH key id",
-        :proc => Proc.new { |key| Chef::Config[:knife][:aws_ssh_key_id] = key }
-
-      option :flavor,
-        :short => "-f FLAVOR",
-        :long => "--flavor FLAVOR",
-        :description => "The flavor of server (m1.small, m1.medium, etc)",
-        :proc => Proc.new { |f| Chef::Config[:knife][:flavor] = f },
-        :default => "m1.small"
-
-      option :image,
-        :short => "-I IMAGE",
-        :long => "--image IMAGE",
-        :description => "The AMI for the server",
-        :proc => Proc.new { |i| Chef::Config[:knife][:image] = i }
-
-      option :availability_zone,
-        :short => "-Z ZONE",
-        :long => "--availability-zone ZONE",
-        :description => "The Availability Zone",
-        :default => "us-east-1b",
-        :proc => Proc.new { |key| Chef::Config[:knife][:availability_zone] = key }
 
       option :security_groups,
         :short => "-G X,Y,Z",
@@ -84,20 +56,6 @@ class Chef
         :description => "The security groups for this server",
         :default => ["infrastructure"],
         :proc => Proc.new { |groups| groups.split(',') }
-
-      option :tags,
-        :short => "-T T=V[,T=V,...]",
-        :long => "--tags Tag=Value[,Tag=Value...]",
-        :description => "The tags for this server",
-        :proc => Proc.new { |tags| tags.split(',') }
-
-      option :ebs_size,
-        :long => "--ebs-size SIZE",
-        :description => "The size of the EBS volume in GB, for EBS-backed instances"
-
-      option :ebs_no_delete_on_term,
-        :long => "--ebs-no-delete-on-term",
-        :description => "Do not delete EBS volumn on instance termination"
 
       def run
         validate!
@@ -112,7 +70,12 @@ class Chef
         ENV['WEBUI_PASSWORD'] = config[:webui_password]
         ENV['AMQP_PASSWORD'] = config[:amqp_password]
         bootstrap = Chef::Knife::Ec2ServerCreate.new
-        bootstrap.config.merge!(config)
+        Chef::Knife::Ec2ServerCreate.options.keys.each do |attr|
+          bootstrap.config[attr] = config_val(attr)
+        end
+        [:verbosity].each do |attr|
+          bootstrap.config[attr] = config_val(attr)
+        end
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap
@@ -121,16 +84,16 @@ class Chef
       def ec2_connection
         @ec2_connection ||= Fog::Compute.new(
           :provider => 'AWS',
-          :aws_access_key_id => Chef::Config[:knife][:aws_access_key_id],
-          :aws_secret_access_key => Chef::Config[:knife][:aws_secret_access_key],
-          :region => Chef::Config[:knife][:region]
+          :aws_access_key_id => config_val(:aws_access_key_id),
+          :aws_secret_access_key => config_val(:aws_secret_access_key),
+          :region => config_val(:region)
         )
       end
 
       def server_dns_name
         server = ec2_connection.servers.find do |s|
           s.state == "running" &&
-            s.tags['Name'] == config[:chef_node_name] &&
+            s.tags['Name'] == config_val(:chef_node_name) &&
             s.tags['Role'] == 'chef_server'
         end
 
@@ -146,23 +109,31 @@ class Chef
         end
       end
 
-      def config_security_group(name = config[:security_groups].first)
+      def config_security_group(name = nil)
+        name = config_val(:security_groups).first if name.nil?
+
         ::Knife::Server::Ec2SecurityGroup.new(ec2_connection, ui).
           configure_chef_server_group(name, :description => "#{name} group")
       end
 
       def bootstrap_tags
-        Hash[Array(config[:tags]).map { |t| t.split('=') }].
+        Hash[Array(config_val(:tags)).map { |t| t.split('=') }].
           merge({"Role" => "chef_server"}).map { |k,v| "#{k}=#{v}" }
       end
 
       def ssh_connection
-        ::Knife::Server::SSH.new(
+        opts = {
           :host => server_dns_name,
-          :user => config[:ssh_user],
-          :port => config[:ssh_port],
-          :keys => [config[:identity_file]]
-        )
+          :user => config_val(:ssh_user),
+          :port => config_val(:ssh_port),
+          :keys => [config_val(:identity_file)].compact
+        }
+        if config_val(:host_key_verify) == false
+          opts[:user_known_hosts_file] = "/dev/null"
+          opts[:paranoid] = false
+        end
+
+        ::Knife::Server::SSH.new(opts)
       end
     end
   end

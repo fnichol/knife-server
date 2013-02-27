@@ -30,11 +30,6 @@ class Chef
             require 'net/ssh'
           end
 
-          option :chef_node_name,
-            :short => "-N NAME",
-            :long => "--node-name NAME",
-            :description => "The name of your new Chef Server"
-
           option :chef_server_version,
             :short => "-C VERSION",
             :long => "--chef-server-version VERSION",
@@ -47,43 +42,20 @@ class Chef
             :description => "The platform type that will be bootstrapped (debian)",
             :default => "auto"
 
-          option :ssh_user,
-            :short => "-x USERNAME",
-            :long => "--ssh-user USERNAME",
-            :description => "The ssh username",
-            :default => "root"
-
-          option :ssh_port,
-            :short => "-p PORT",
-            :long => "--ssh-port PORT",
-            :description => "The ssh port",
-            :default => "22",
-            :proc => Proc.new { |key| Chef::Config[:knife][:ssh_port] = key }
-
-          option :identity_file,
-            :short => "-i IDENTITY_FILE",
-            :long => "--identity-file IDENTITY_FILE",
-            :description => "The SSH identity file used for authentication"
-
-          option :prerelease,
-            :long => "--prerelease",
-            :description => "Install the pre-release chef gem"
-
-          option :bootstrap_version,
-            :long => "--bootstrap-version VERSION",
-            :description => "The version of Chef to install",
-            :proc => Proc.new { |v| Chef::Config[:knife][:bootstrap_version] = v }
-
-          option :template_file,
-            :long => "--template-file TEMPLATE",
-            :description => "Full path to location of template to use",
-            :proc => Proc.new { |t| Chef::Config[:knife][:template_file] = t },
-            :default => false
-
           option :distro,
             :short => "-d DISTRO",
             :long => "--distro DISTRO",
             :description => "Bootstrap a distro using a template; default is 'chef-server-<platform>'"
+
+          option :bootstrap_version,
+            :long => "--bootstrap-version VERSION",
+            :description => "The version of Chef Server to install, default is latest release",
+            :proc => Proc.new { |v| Chef::Config[:knife][:bootstrap_version] = v },
+            :default => nil
+
+          option :prerelease,
+            :long => "--prerelease",
+            :description => "Install a pre-release version of Chef Server"
 
           option :webui_password,
             :long => "--webui-password SECRET",
@@ -169,6 +141,12 @@ class Chef
         end
 
         return distro_auto_map(*result.split(/\n/).compact[0..1])
+      end
+
+      def config_val(key)
+        key = key.to_sym
+        default_value = options[key] && options[key][:default]
+        config.fetch(key, Chef::Config[:knife].fetch(key, default_value))
       end
     end
   end

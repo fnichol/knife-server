@@ -1,6 +1,7 @@
 # <a name="title"></a> Knife::Server
 
-[![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/fnichol/knife-server)
+[![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server)
+[![Code Climate](https://codeclimate.com/github/fnichol/knife-server.png)](https://codeclimate.com/github/fnichol/knife-server)
 
 An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
 Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
@@ -69,7 +70,14 @@ Add this line to your application's Gemfile:
 gem 'knife-server'
 ```
 
-And then execute:
+**Note** If you want to use the `bootstrap ec2` subcommand you will need to
+explicitly add this to your Gemfile with:
+
+```ruby
+gem 'knife-ec2'
+```
+
+Finally execute:
 
 ```bash
 $ bundle
@@ -80,6 +88,9 @@ Or install it yourself as:
 ```bash
 $ gem install knife-server
 ```
+
+(Don't forget a `gem install knife-ec2` if using the `bootstrap ec2`
+subcommand).
 
 Next, you **must** set up a [knife.rb configuration](#installation-knife) so
 that the shipped Knife subcommands know where to place and modify key files,
@@ -229,6 +240,10 @@ The initial password for AMQP.
 The default value is `"chefchef"`.
 
 ### <a name="knife-server-bootstrap-ec2"></a> knife server bootstrap ec2
+
+**Note:** You must install the [knife-ec2 gem][knife-ec2] to use this
+subcommand. This was done to keep the dependencies of this library lighter and
+to make future cloud adapter support easier to add.
 
 Provisions an EC2 instance on the Amazon Web Services (AWS) cloud and sets
 up an Open Source Chef Server as described [above](#knife-server-bootstrap).
