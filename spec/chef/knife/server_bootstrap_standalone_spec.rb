@@ -33,13 +33,17 @@ describe Chef::Knife::ServerBootstrapStandalone do
     @stderr = StringIO.new
     @knife.ui.stub!(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
-    @knife.config[:chef_server_version] = "10"
-    @knife.config[:platform] = "auto"
     @knife.config[:ssh_user] = "root"
-    @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
   end
 
   describe "distro selection" do
+
+    before do
+      @knife.config[:bootstrap_version] = "10"
+      @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
+      @knife.config[:platform] = "auto"
+    end
+
     it "should auto-select from determine_platform by default" do
       @knife.config.delete(:distro)
       @knife.send(:bootstrap_distro).should eq("chef10/debian")
@@ -49,7 +53,7 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
     it "should construct the distro path based on the chef server version and platform" do
       @knife.send(:construct_distro, "rhel").should eq("chef10/rhel")
-      @knife.config[:chef_server_version] = "11"
+      @knife.config[:bootstrap_version] = "11"
       @knife.send(:construct_distro, "rhel").should eq("chef11/rhel")
     end
 
@@ -64,15 +68,16 @@ describe Chef::Knife::ServerBootstrapStandalone do
         "sles" => "suse",
         "suse" => "suse"
       }.each do |key, value|
-        @knife.config[:chef_server_version] = "10"
+        @knife.config[:bootstrap_version] = "10"
         @knife.send(:distro_auto_map, key, 0).should eq("chef10/#{value}")
-        @knife.config[:chef_server_version] = "11"
+        @knife.config[:bootstrap_version] = "11"
         @knife.send(:distro_auto_map, key, 0).should eq("chef11/#{value}")
       end
     end
   end
 
   describe "#standalone_bootstrap" do
+
     before do
       @knife.config[:host] = "172.0.10.21"
       @knife.config[:chef_node_name] = "shave.yak"
@@ -132,17 +137,17 @@ describe Chef::Knife::ServerBootstrapStandalone do
       bootstrap.config[:distro].should eq("distro-praha")
     end
 
-    it "configs the bootstrap's distro to chef-server-omnibus by default" do
+    it "configs the bootstrap's distro to chef11/omnibus by default" do
       @knife.config.delete(:distro)
 
-      bootstrap.config[:distro].should eq("chef-server-omnibus")
+      bootstrap.config[:distro].should eq("chef11/omnibus")
     end
 
     it "configs the bootstrap's distro value driven off platform value" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
 
-      bootstrap.config[:distro].should eq("chef10/freebsd")
+      bootstrap.config[:distro].should eq("chef11/freebsd")
     end
 
     it "configs the bootstrap's ENV with the webui password" do
@@ -240,7 +245,8 @@ describe Chef::Knife::ServerBootstrapStandalone do
       @knife.run
     end
 
-    it "installs a new validation.pem key from the server" do
+    it "installs a new validation.pem key from the chef 10 server" do
+      @knife.config[:bootstrap_version] = "10"
       @knife.config[:distro] = "yabba-debian"
       Knife::Server::Credentials.should_receive(:new).
         with(ssh, "/etc/chef/validation.pem", {})
@@ -250,7 +256,6 @@ describe Chef::Knife::ServerBootstrapStandalone do
     end
 
     it "installs a new validation.pem key from the omnibus server" do
-      @knife.config[:chef_server_version] = "11"
       Knife::Server::Credentials.should_receive(:new).
         with(ssh, "/etc/chef/validation.pem", {:omnibus => true})
       credentials.should_receive(:install_validation_key)

@@ -33,10 +33,8 @@ describe Chef::Knife::ServerBootstrapEc2 do
     @stderr = StringIO.new
     @knife.ui.stub!(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
-    @knife.config[:chef_server_version] = "10"
-    @knife.config[:platform] = "auto"
+    @knife.config[:platform] = "omnibus"
     @knife.config[:ssh_user] = "root"
-    @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
   end
 
   let(:connection) { mock(Fog::Compute::AWS) }
@@ -106,25 +104,25 @@ describe Chef::Knife::ServerBootstrapEc2 do
       bootstrap.config[:distro].should eq("distro-praha")
     end
 
-    it "configs the bootstrap's distro to omnibus-chef-server by default" do
+    it "configs the bootstrap's distro to chef11/omnibus by default" do
       @knife.config.delete(:distro)
 
-      bootstrap.config[:distro].should eq("chef-server-omnibus")
+      bootstrap.config[:distro].should eq("chef11/omnibus")
     end
 
     it "configs the bootstrap's distro value driven off platform value" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
 
-      bootstrap.config[:distro].should eq("chef10/freebsd")
+      bootstrap.config[:distro].should eq("chef11/freebsd")
     end
 
-    it "configs the bootstrap's distro based on chef_server_version and platform" do
+    it "configs the bootstrap's distro based on bootstrap_version and platform" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
-      @knife.config[:chef_server_version] = "11"
+      @knife.config[:bootstrap_version] = "10"
 
-      bootstrap.config[:distro].should eq("chef11/freebsd")
+      bootstrap.config[:distro].should eq("chef10/freebsd")
     end
 
     it "configs the bootstrap's ENV with the webui password" do
@@ -263,20 +261,20 @@ describe Chef::Knife::ServerBootstrapEc2 do
       @knife.run
     end
 
-    it "installs a new validation.pem key from the server" do
+    it "installs a new validation.pem key from the chef 10 server" do
+      @knife.config[:bootstrap_version] = "10"
       Knife::Server::SSH.should_receive(:new).with({
         :host => "grapes.wrath", :user => "root",
         :port => "2345", :keys => ["~/.ssh/mykey_dsa"]
       })
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem", { :omnibus => true })
+        with(ssh, "/etc/chef/validation.pem", {})
       credentials.should_receive(:install_validation_key)
 
       @knife.run
     end
 
     it "installs a new validation.pem key from the omnibus server" do
-      @knife.config[:chef_server_version] = "11"
       Knife::Server::SSH.should_receive(:new).with({
         :host => "grapes.wrath", :user => "root",
         :port => "2345", :keys => ["~/.ssh/mykey_dsa"]

@@ -30,12 +30,6 @@ class Chef
             require 'net/ssh'
           end
 
-          option :chef_server_version,
-            :short => "-C VERSION",
-            :long => "--chef-server-version VERSION",
-            :description => "The version of chef you wish to use for the server",
-            :default => "10"
-
           option :platform,
             :short => "-P PLATFORM",
             :long => "--platform PLATFORM",
@@ -45,7 +39,7 @@ class Chef
           option :distro,
             :short => "-d DISTRO",
             :long => "--distro DISTRO",
-            :description => "Bootstrap a distro using a template; default is 'chef-server-<platform>'"
+            :description => "Bootstrap a distro using a template; default is 'chef11/omnibus'"
 
           option :bootstrap_version,
             :long => "--bootstrap-version VERSION",
@@ -85,7 +79,7 @@ class Chef
       end
 
       def bootstrap_auto?
-        config[:platform] == "auto"
+        config_val(:platform) == "auto"
       end
 
       def distro_auto_map(platform, platform_version)
@@ -112,17 +106,24 @@ class Chef
       end
 
       def construct_distro(platform)
-        "chef#{config[:chef_server_version]}/#{platform}"
+        "chef#{chef_server_major_version}/#{platform}"
+      end
+
+      def chef_server_major_version
+        version = config_val(:bootstrap_version)
+
+        version.nil? ? 11 : version.split(".").first.to_i
       end
 
       def bootstrap_distro
-        return config[:distro] if config[:distro]
-        return determine_platform if config[:platform] == "auto"
-        return construct_distro(config[:platform])
+        return config_val(:distro) if config_val(:distro)
+        return determine_platform if config_val(:platform) == "auto"
+        return construct_distro(config_val(:platform))
       end
 
       def credentials_client
-        opts = { :omnibus => config[:chef_server_version] > '10' }
+        opts = {}
+        opts[:omnibus] = true if chef_server_major_version > 10
         @credentials_client ||= ::Knife::Server::Credentials.new(
           ssh_connection, Chef::Config[:validation_key], opts)
       end
