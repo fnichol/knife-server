@@ -1,0 +1,142 @@
+bash -c '
+<%= %{export http_proxy="#{knife_config[:bootstrap_proxy]}"} if knife_config[:bootstrap_proxy] -%>
+
+export hostname="<%= @config[:chef_node_name] %>"
+export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
+export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
+export chef_version="<%= Chef::VERSION %>"
+
+set -e
+
+setup() {  
+  if grep -qi "Red Hat" /etc/redhat-release
+  then
+    platform="redhat"
+  else
+    platform=$(cat /etc/redhat-release | cut -d" " -f1 | tr [[:upper:]] [[:lower:]])
+  fi
+
+  # throttle selinux, people can set it back up themselves if they want.
+  (setenforce Permissive || exit 0)
+  if [ -f /etc/selinux/config ]
+  then
+    cd /etc/selinux
+    sed -i.bak 's/SELINUX=enforcing/SELINUX=permissive/g' config
+    cd $OLDPWD
+  fi
+}
+
+set_hostname_for_platform() {
+  if hostname | grep -q "$hostname" > /dev/null ; then
+    printf -- "-----> Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+  local hostnames="${hostname} ${host_first}"
+
+  sed -i "s/HOSTNAME=.*/HOSTNAME=${hostname}/" /etc/sysconfig/network
+
+  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
+    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" /etc/hosts
+  else
+    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" /etc/hosts
+  fi
+  /bin/hostname ${hostname}
+}
+
+set_hostname_for_centos() {
+  set_hostname_for_platform
+}
+
+set_hostname_for_redhat() {
+  set_hostname_for_platform
+}
+
+set_hostname_for_amazon() {
+  set_hostname_for_platform
+}
+
+set_hostname_for_scientific() {
+  set_hostname_for_platform
+}
+
+set_hostname_for_enterpriseenterprise() {
+  set_hostname_for_platform
+}
+
+install_omnibus_chef() {
+  yum install -y curl bash
+  curl -L https://www.opscode.com/chef/install.sh | bash -s -- -v "${chef_version}"
+}
+
+download_cookbook() {
+  local server_ckbk_dir="$1/chef-server"
+  local url="https://github.com/opscode-cookbooks/chef-server/archive/master.tar.gz"
+
+  mkdir -p "$server_ckbk_dir"
+  (cd "$server_ckbk_dir" && \
+    curl -sL "$url" | gunzip -c - | tar xf - --strip-components=1)
+}
+
+config_chef_solo() {
+  local tmp_solo="$1"
+
+  mkdir -p $tmp_solo/cookbooks
+  cat > $tmp_solo/solo.rb <<SOLO_RB
+file_cache_path "$tmp_solo"
+cookbook_path   "$tmp_solo/cookbooks"
+SOLO_RB
+
+cat <<BOOTSTRAP_JSON > $tmp_solo/bootstrap.json
+{
+  "chef-server" : {
+    "prereleases" : true,
+    "chef-server-webui" : {
+      "web_ui_admin_default_password" : "$webui_password"
+    },
+    "rabbitmq" : {
+      "password" : "$amqp_password"
+    }
+  },
+  "run_list" : [ "recipe[chef-server]" ]
+}
+BOOTSTRAP_JSON
+  
+  download_cookbook $tmp_solo/cookbooks
+}
+
+run_chef_solo() {
+  local tmp_solo=/tmp/chef-solo
+
+  config_chef_solo $tmp_solo
+  chef-solo -c $tmp_solo/solo.rb -j $tmp_solo/bootstrap.json
+  rm -rf $tmp_solo
+}
+
+cleanup() {
+  for bin in chef-client chef-solo chef-shell knife ohai shef ; do
+    ln -snf /opt/chef-server/bin/$bin /usr/bin/$bin
+  done ; unset bin
+
+  rm -rf /opt/chef
+}
+
+configure_firewall() {
+  # chef-server-api
+  /usr/sbin/lokkit -p 4000:tcp
+  # chef-server-webui
+  /usr/sbin/lokkit -p 4040:tcp 
+  # ssl proxy to chef-server-api
+  /usr/sbin/lokkit -p 443:tcp  
+}
+
+setup
+set_hostname_for_${platform}
+install_omnibus_chef
+run_chef_solo
+configure_firewall
+cleanup
+
+echo "-----> Bootstraping Chef Server on ${hostname} is complete."
+'

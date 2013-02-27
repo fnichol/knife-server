@@ -1,0 +1,185 @@
+bash -c '
+<%= %{export http_proxy="#{knife_config[:bootstrap_proxy]}"} if knife_config[:bootstrap_proxy] -%>
+
+export hostname="<%= @config[:chef_node_name] %>"
+export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
+export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
+export chef_version="<%= Chef::VERSION %>"
+
+set -e
+
+setup() {
+  if grep -qi "Red Hat" /etc/redhat-release
+  then
+    platform="redhat"
+  else
+    platform=$(cat /etc/redhat-release | cut -d" " -f1 | tr [[:upper:]] [[:lower:]])
+  fi
+
+  # throttle selinux, people can set it back up themselves if they want.
+  (setenforce Permissive || exit 0)
+  if [ -f /etc/selinux/config ]
+  then
+    cd /etc/selinux
+    sed -i.bak 's/SELINUX=enforcing/SELINUX=permissive/g' config
+    cd $OLDPWD
+  fi
+
+  yum install ruby rubygems ruby-devel -y
+  yum install readline-devel zlib-devel libyaml-devel openssl-devel \
+    make autoconf automake gcc tar libstdc++-devel gcc-c++ -y
+
+  /usr/bin/gem install rubygems-update -v 1.8.25
+  /usr/bin/update_rubygems
+}
+
+set_hostname_for_centos() {
+  if hostname | grep -q "$hostname" > /dev/null ; then
+    printf -- "-----> Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+  local hostnames="${hostname} ${host_first}"
+
+  sed -i "s/HOSTNAME=.*/HOSTNAME=${hostname}/" /etc/sysconfig/network
+
+  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
+    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" /etc/hosts
+  else
+    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" /etc/hosts
+  fi
+  /bin/hostname ${hostname}
+}
+
+set_hostname_for_redhat() {
+  if hostname | grep -q "$hostname" > /dev/null ; then
+    printf -- "-----> Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+  local hostnames="${hostname} ${host_first}"
+
+  sed -i "s/HOSTNAME=.*/HOSTNAME=${hostname}/" /etc/sysconfig/network
+
+  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
+    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" /etc/hosts
+  else
+    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" /etc/hosts
+  fi
+  /bin/hostname ${hostname}
+}
+
+set_hostname_for_amazon() {
+  if hostname | grep -q "$hostname" > /dev/null ; then
+    printf -- "-----> Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+  local hostnames="${hostname} ${host_first}"
+
+  sed -i "s/HOSTNAME=.*/HOSTNAME=${hostname}/" /etc/sysconfig/network
+
+  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
+    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" /etc/hosts
+  else
+    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" /etc/hosts
+  fi
+  /bin/hostname ${hostname}
+}
+
+set_hostname_for_scientific() {
+  if hostname | grep -q "$hostname" > /dev/null ; then
+    printf -- "-----> Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+  local hostnames="${hostname} ${host_first}"
+
+  sed -i "s/HOSTNAME=.*/HOSTNAME=${hostname}/" /etc/sysconfig/network
+
+  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
+    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" /etc/hosts
+  else
+    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" /etc/hosts
+  fi
+  /bin/hostname ${hostname}
+}
+
+set_hostname_for_enterpriseenterprise() {
+  if hostname | grep -q "$hostname" > /dev/null ; then
+    printf -- "-----> Hostname is correct, so skipping...\n"
+    return
+  fi
+
+  local host_first="$(echo $hostname | cut -d . -f 1)"
+  local hostnames="${hostname} ${host_first}"
+
+  sed -i "s/HOSTNAME=.*/HOSTNAME=${hostname}/" /etc/sysconfig/network
+
+  if egrep -q "^127.0.1.1[[:space:]]" /etc/hosts >/dev/null ; then
+    sed -i "s/^\(127[.]0[.]1[.]1[[:space:]]\+\)/\1${hostnames} /" /etc/hosts
+  else
+    sed -i "s/^\(127[.]0[.]0[.]1[[:space:]]\+.*\)$/\1\n127.0.1.1 ${hostnames} /" /etc/hosts
+  fi
+  /bin/hostname ${hostname}
+}
+
+config_chef_solo() {
+  local tmp_solo="$1"
+
+  mkdir -p $tmp_solo
+  cat <<SOLO_RB > $tmp_solo/solo.rb
+file_cache_path "$tmp_solo"
+cookbook_path   "$tmp_solo/cookbooks"
+SOLO_RB
+
+  cat<<BOOTSTRAP_JSON > $tmp_solo/bootstrap.json
+{
+  "chef_server": {
+    "webui_enabled" : true,
+    "ssl_req" : "/C=CA/ST=Several/L=Locality/O=Example/OU=Operations/CN=${hostname}/emailAddress=root@${hostname}"
+  },
+  "run_list": [ "recipe[chef-server::rubygems-install]", "recipe[chef-server::apache-proxy]" ]
+}
+BOOTSTRAP_JSON
+}
+
+install_chef_server() {
+  # hack, ensure net-ssh 2.2.2 and net-ssh-multi 1.1.0 is installed before
+  # installing chef, otherwise rubygems will explode trying to run chef
+
+  gem install net-ssh -v 2.2.2 --no-ri --no-rdoc
+  gem install net-ssh-gateway -v 1.1.0 --no-ri --no-rdoc
+  gem install net-ssh-multi -v 1.1.0 --no-ri --no-rdoc
+  gem install chef -v $chef_version --no-ri --no-rdoc 
+
+  local tmp_solo=/tmp/chef-solo
+
+  config_chef_solo $tmp_solo
+
+  chef-solo -c $tmp_solo/solo.rb -j $tmp_solo/bootstrap.json \
+     -r http://s3.amazonaws.com/chef-solo/bootstrap-latest.tar.gz
+
+  rm -rf $tmp_solo
+}
+
+configure_firewall() {
+  # chef-server-api
+  /usr/sbin/lokkit -p 4000:tcp
+  # chef-server-webui
+  /usr/sbin/lokkit -p 4040:tcp 
+  # ssl proxy to chef-server-api
+  /usr/sbin/lokkit -p 443:tcp  
+}
+
+setup
+set_hostname_for_${platform}
+install_chef_server
+configure_firewall
+
+printf -- "-----> Bootstraping Chef Server on ${hostname} is complete.\n"
+'

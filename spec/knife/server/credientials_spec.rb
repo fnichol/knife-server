@@ -30,16 +30,28 @@ describe Knife::Server::Credentials do
     Knife::Server::Credentials.new(ssh, validation_key_path)
   end
 
+  let(:omnibus_subject) do
+    Knife::Server::Credentials.new(ssh, validation_key_path, :omnibus => true)
+  end
+
   before do
     FileUtils.mkdir_p(File.dirname(validation_key_path))
     FileUtils.mkdir_p(File.dirname(client_key_path))
     File.new(validation_key_path, "wb")  { |f| f.write("thekey") }
     File.new(client_key_path, "wb")  { |f| f.write("clientkey") }
+
+    ENV['_SPEC_WEBUI_PASSWORD'] = ENV['WEBUI_PASSWORD']
+  end
+
+  after do
+    ENV['WEBUI_PASSWORD'] = ENV.delete('_SPEC_WEBUI_PASSWORD')
   end
 
   describe "#install_validation_key" do
     before do
       ssh.stub(:exec!).with("cat /etc/chef/validation.pem")  { "newkey" }
+      ssh.stub(:exec!).
+        with("cat /etc/chef-server/chef-validator.pem")  { "omnibuskey" }
     end
 
     it "creates a backup of the existing validation key file" do
@@ -63,6 +75,13 @@ describe Knife::Server::Credentials do
 
       key_str.should eq("newkey")
     end
+
+    it "copies the key back from the omnibus server into validation key file" do
+      omnibus_subject.install_validation_key("old")
+      key_str = File.open("/tmp/validation.pem", "rb") { |f| f.read }
+
+      key_str.should eq("omnibuskey")
+    end
   end
 
   describe "#create_root_client" do
@@ -73,6 +92,21 @@ describe Knife::Server::Credentials do
       ].join(" "))
 
       subject.create_root_client
+    end
+
+    it "creates an initial user on the omnibus server" do
+      ENV['WEBUI_PASSWORD'] = 'doowah'
+      ssh.should_receive(:exec!).with([
+        "echo 'doowah' |",
+        'knife configure --initial --server-url http://127.0.0.1:8000',
+        '--user root --repository "" --admin-client-name chef-webui',
+        '--admin-client-key /etc/chef-server/chef-webui.pem',
+        '--validation-client-name chef-validator',
+        '--validation-key /etc/chef-server/chef-validator.pem',
+        '--defaults --yes'
+      ].join(" "))
+
+      omnibus_subject.create_root_client
     end
   end
 
