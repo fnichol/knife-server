@@ -1,0 +1,63 @@
+bash -c '
+<%
+  require 'erb'
+
+  def render(partial)
+    partial_path = Gem.find_files(File.join(
+      %W{chef knife bootstrap _#{partial}}
+    )).first
+    raise ArgumentError, "Partial _#{partial} not found" if partial_path.nil?
+
+    ERB.new(IO.read(partial_path)).result(binding)
+  end
+-%>
+set -e
+<%= %{set -x} if @config[:verbosity] > 0 -%>
+
+<%=
+  if knife_config[:bootstrap_proxy]
+    %{export http_proxy="#{knife_config[:bootstrap_proxy]}"}
+  end
+-%>
+export hostname="<%= @config[:chef_node_name] %>"
+export version="<%= @config[:bootstrap_version] %>"
+export prerelease="<%= @config[:prerelease].nil? ? false : @config[:prerelease] %>"
+export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
+export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
+
+<%= render "common.sh" %>
+
+<%= render "platform_and_version.sh" %>
+
+<%= render "set_hostname.sh" %>
+
+<%= render "omnibus.sh" %>
+
+#
+# Chef Server Omnibus installation
+#
+
+# Set filename
+case $platform in
+  "ubuntu") deb_filename ;;
+  "debian") deb_filename ;;
+  "el") rpm_filename ;;
+  "suse") rpm_filename ;;
+  "sles") rpm_filename ;;
+  "fedora") rpm_filename ;;
+esac
+
+# Set tmp_dir
+tmp_dir=$(mktemp -d -t tmp.XXXXXXXX || echo "/tmp")
+
+set_hostname_for_${platform}
+download_package
+install_package
+prepare_chef_server_rb
+symlink_binaries
+reconfigure_chef_server
+test_chef_server
+configure_firewall
+
+banner "Bootstraping Chef Server on ${hostname} is complete."
+'
