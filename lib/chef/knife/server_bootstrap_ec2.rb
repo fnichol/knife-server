@@ -104,6 +104,10 @@ class Chef
           ui.error "You did not provide a valid --node-name value."
           exit 1
         end
+        if config_val(:platform) == "auto"
+          ui.error "Auto platform mode cannot be used with knife-ec2 plugin"
+          exit 1
+        end
       end
 
       def config_security_group(name = nil)
