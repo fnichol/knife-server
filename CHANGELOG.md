@@ -1,7 +1,7 @@
-## 0.3.4.dev (unreleased)
+## 0.3.4.dev / Unreleased
 
 
-## 0.3.3 (December 24, 2012)
+## 0.3.3 / 2012-12-24
 
 ### Bug fixes
 
@@ -9,7 +9,7 @@
   identity-file when `nil` is passed in. ([@erikh][])
 
 
-## 0.3.2 (December 19, 2012)
+## 0.3.2 / 2012-12-19
 
 ### Improvements
 
@@ -23,7 +23,7 @@
   users of this gem. ([@fnichol][])
 
 
-## 0.3.1 (December 12, 2012)
+## 0.3.1 / 2012-12-12
 
 ### Bug fixes
 
@@ -41,7 +41,7 @@
 * Update usage section in README.
 
 
-## 0.3.0 (July 7, 2012)
+## 0.3.0 / 2012-07-07
 
 ### New features
 
@@ -50,7 +50,7 @@
   ([@fnichol][])
 
 
-## 0.2.2 (July 4, 2012)
+## 0.2.2 / 2012-07-04
 
 ### New features
 
@@ -62,7 +62,7 @@
 * Add Code Climate badge to README. ([@fnichol][])
 
 
-## 0.2.1 (July 3, 2012)
+## 0.2.1 / 2012-07-03
 
 ### Improvements
 
@@ -70,7 +70,7 @@
   http://wiki.opscode.com/display/chef/Knife+Plugins. ([@fnichol][])
 
 
-## 0.2.0 (July 3, 2012)
+## 0.2.0 / 2012-07-03
 
 ### Bug fixes
 
@@ -85,7 +85,7 @@
   ([@fnichol][])
 
 
-## 0.1.0 (June 23, 2012)
+## 0.1.0 / 2012-06-23
 
 The initial release.
 
