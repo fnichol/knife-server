@@ -1,4 +1,44 @@
-## 0.3.4.dev / Unreleased
+## 1.0.0 / 2013-02-28
+
+### Breaking Changes
+
+* Default Chef Server installed is the latest Chef 11 (erchef) version from
+  Omnibus packages via the `"chef11/omnibus"` template. All platform supported
+  by the Omnibus packages should work out of the box. Chef Server 10 is still
+  supported by setting the --bootstrap-version flag to "10". ([@fnichol][])
+* WebUI is no longer configured to start up by default (--enable-webui flag
+  introduced to re-enable). For more details, please read
+  http://lists.opscode.com/sympa/arc/chef-dev/2013-02/msg00023.html.
+  ([@fnichol][])
+* The knife-ec2 gem is no longer a direct dependency; you must add install this
+  gem or add it to your Gemfile in order to use `knife server bootstrap ec2`.
+  ([@fnichol][])
+
+### New features
+
+* First class support for RHEL platform family nodes including CentOS,
+  Scientific, RHEL, Amazon Linux, etc. Seriously, this is huge. ([@danryan][],
+  [@erikh][])
+* Support for installing Chef 11 (erchef) servers from Omnibus packages.
+  ([@fnicho][])
+* Add --log-level flag to help debug bootstrap template output. ([@fnichol][])
+* Support all relevant options from `Chef::Knife::Bootstrap` and
+  `Chef::Knife::Ec2ServerCreate` in the standalone and ec2 subcommands. This
+  includes --bootstrap-version, ssh options, ebs options, etc. ([@fnichol][])
+* An auto mode (set via --platform auto) which will detect the node's platform
+  and run the appropriate template for Chef 10 servers. Currently only
+  supported with standalone subcommand. ([@erikh][])
+
+### Improvements
+
+* Ensure config parameters are applied in the right order for Chef 10/11.
+  ([@fnichol][])
+* Add matrix build support to TravisCI for multiple versions of Chef.
+  ([@fnichol][])
+* Update README badges (better consistency). ([@fnichol][])
+* Update CHANGLOG format headings for Vandamme/Gemnasium compatability.
+  ([@fnichol][])
+* Update README documentation with 1.0.0 changes. ([@fnichol][])
 
 
 ## 0.3.3 / 2012-12-24
@@ -89,6 +129,7 @@
 
 The initial release.
 
+[@danryan]: https://github.com/danryan
 [@erikh]: https://github.com/erikh
 [@fnichol]: https://github.com/fnichol
 [@iafonov]: https://github.com/iafonov
