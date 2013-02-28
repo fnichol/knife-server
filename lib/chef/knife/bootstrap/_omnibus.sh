@@ -83,7 +83,7 @@ api_fqdn "$hostname"
 
 rabbitmq["password"] = "$amqp_password"
 
-chef_server_webui["enable"] = true
+chef_server_webui["enable"] = $webui_enable
 chef_server_webui["web_ui_admin_default_password"] = "$webui_password"
 CHEF_SERVER
   chmod 0600 "$config_file"

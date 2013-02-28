@@ -51,6 +51,12 @@ class Chef
             :long => "--prerelease",
             :description => "Install a pre-release version of Chef Server"
 
+          option :webui_enable,
+            :long => "--[no-]webui-enable",
+            :description => "Whether or not to enable the webui, default is false",
+            :proc => Proc.new { |v| Chef::Config[:knife][:webui_enable] = v },
+            :default => false
+
           option :webui_password,
             :long => "--webui-password SECRET",
             :description => "Initial password for WebUI admin account, default is 'chefchef'",

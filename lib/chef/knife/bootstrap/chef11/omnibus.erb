@@ -21,7 +21,8 @@ set -e
 -%>
 export hostname="<%= @config[:chef_node_name] %>"
 export version="<%= @config[:bootstrap_version] %>"
-export prerelease="<%= @config[:prerelease].nil? ? false : @config[:prerelease] %>"
+export prerelease="<%= @config[:prerelease] == true %>"
+export webui_enable="<%= @chef_config[:knife][:webui_enable] == true %>"
 export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
 export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
 
