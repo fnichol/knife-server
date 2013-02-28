@@ -13,8 +13,27 @@ Follow the [installation](#installation) instructions, then you are ready
 to create your very own Chef Server running Ubuntu on Amazon's EC2 service:
 
 ```bash
-$ knife server bootstrap ec2 --ssh-user ubuntu \
-  --node-name chefapalooza.example.com
+$ knife server bootstrap ec2 \
+  --node-name chefapalooza.example.com \
+  --aws-access-key-id $AWS_ACCESS_KEY_ID \
+  --aws-secret-access-key $AWS_SECRET_ACCESS_KEY \
+  --region us-east-1 \
+  --availability-zone us-east-1b \
+  --image ami-de0d9eb7 \
+  --ssh-user ubuntu \
+  --flavor m1.small \
+  --ssh-key id_rsa-aws \
+  --identity-file ~/.ssh/id_rsa-aws
+```
+
+Be sure to substitute with your access key id, secret access key, ssh key id,
+and identity file (private SSH key). If you have most of these settings set
+up in a `knife.rb` file, it becomes much shorter:
+
+```bash
+$ knife server bootstrap ec2 \
+  --node-name chefapalooza.example.com \
+  --ssh-user ubuntu
 ```
 
 Or maybe you want to try out a Chef Server using [Vagrant][vagrant_site]?
@@ -24,13 +43,16 @@ $ cat <<VAGRANTFILE > Vagrantfile
 Vagrant::Config.run do |config|
   config.vm.box = "precise64"
   config.vm.box_url = "http://files.vagrantup.com/precise64.box"
-  config.vm.network :hostonly, "192.168.33.11"
+  config.vm.network :hostonly, "192.168.33.10"
   config.vm.customize ["modifyvm", :id, "--memory", 2048]
 end
 VAGRANTFILE
 $ vagrant up
-$ knife server bootstrap standalone --ssh-user vagrant \
-  --node-name chefapalooza.example.com --host 192.168.33.11
+$ knife server bootstrap standalone \
+  --node-name chefapalooza.example.com \
+  --host 192.168.33.10 \
+  --ssh-user vagrant \
+  --ssh--password vagrant
 ```
 
 Taking a backup of all node, role, data bag, and environment data is also a
@@ -152,23 +174,26 @@ These subcommands will install and configure an Open Source Chef Server on
 several different clouds/environments. The high level step taken are as
 follows:
 
-1. Provision or use a node and install the Chef Server software fronted by
-   an Apache2 instance handling SSL for the API port (TCP/443) and the
-   WebUI web application (TCP/444).
+1. Provision or use a node and install the Chef Server software. If it is a
+   Chef 10 server, configure an Apache2 instance to front the server instance
+   handling SSL for the API port (TCP/443) and the WebUI web application
+   (TCP/444, if enabled).
 2. Fetch the validation key from the server and install it onto the
    workstation issuing the knife subcommand. The validation key will be
    installed at the path defined in the knife `validation_key` variable.
    If a key already exists at that path a backup copy will be made in the
    same directory.
-3. Create an initial admin client key called `root` in the root user's account
+3. Create an initial admin user key called `root` in the root user's account
    on the server which can be used for local administration of the Chef
-   Server.
-4. Create an admin client key with the name defined in the knife
+   Server. If it is a Chef 10 installation, an admin client key will be
+   generated instead.
+4. Create an admin user key with the name defined in the knife
    `node_name` configuration variable and install it onto the workstation
-   issuing the knife subcommand. The client key will be installed at the
+   issuing the knife subcommand. The user key will be installed at the
    path defined in the knife `client_key` configuration variable. If a key
    already exists at that path a backup copy will be made in the same
-   directory.
+   directory. If it is a Chef 10 installation, an admin client key will be
+   generated instead.
 
 **Note** `knife server bootstrap` can not be invoked directly; a subcommand
 must be selected which determines the provisioning strategy.
@@ -189,7 +214,9 @@ The platform type that will be bootstrapped. By convention a bootstrap
 template of `chef-server-#{platform}.erb` will be searched for in the
 template lookup locations (gems, .chef directory, etc.).
 
-The default value is `"debian"` which support Debian and Ubuntu platforms.
+The default value is `"omnibus"` which supports all platforms for which Omnibus
+packages have been created. For more details, visit the [Install
+Chef][install_chef] page and click on *"Chef Server"*.
 
 ##### --ssh-user USER (-x)
 
@@ -205,9 +232,15 @@ The SSH port used when bootstrapping the Chef Server node.
 
 The default value is `"22"`.
 
+##### --[no-]host-key-verify
+
+Verify and cache SSH host key when connecting.
+
+The default value is `true`
+
 ##### --identity-file IDENTITY\_FILE (-i)
 
-The SSH identity file used for authentication.
+The SSH identity file (private SSH key) used for authentication.
 
 ##### --prerelease
 
@@ -215,7 +248,9 @@ Installs a pre-release Chef gem rather than a stable release version.
 
 ##### --bootstrap-version VERSION
 
-The version of Chef to install.
+The version of Chef to install. For Chef 11 installations (the default), you
+can provide the version of Omnibus package you want installed. To install a
+Chef 10 server, set this value to `"10"`.
 
 ##### --template-file TEMPLATE
 
@@ -225,11 +260,18 @@ The full path to location of template to use.
 
 Bootstraps the Chef Server using a particular bootstrap template.
 
-The default is `"chef-server-#{platform}"`.
+The default is `"chef11/#{platform}"`.
+
+##### --[no-]webui-enable
+
+Whether or no the WebUI interface will be installed and enabled.
+
+The default value is `false`.
 
 ##### --webui-password PASSWORD
 
-The initial password for the WebUI admin account.
+The initial password for the WebUI admin account, root user account, and
+workstation user account.
 
 The default value is `"chefchef"`.
 
@@ -257,6 +299,16 @@ In addition, the following steps are taken initially:
 
 #### Configuration
 
+This subcommand imports all relavent options from the knife-ec2 gem. For
+detailed documentation relating to these options, please visit the [docs
+page][docs_knife_ec2].
+
+##### --availability-zone ZONE (-Z)
+
+The availability zone for the EC2 instance.
+
+The default value is `"us-east-1b"`.
+
 ##### --aws-access-key-id KEY (-A)
 
 Your AWS access key ID.
@@ -269,16 +321,17 @@ Your AWS API secret access key.
 
 This option is **required**.
 
-##### --region REGION
+##### --ebs-optimized
 
-The desired AWS region, such as `"us-east-1"` or `"us-west-2"`.
+Enabled optimized EBS I/O.
 
-The default value is `"us-east-1"` but is strongly encouraged to be set
-explicitly.
+##### --ebs-size SIZE
 
-##### --ssh-key KEY (-S)
+The size of the EBS volume in GB, for EBS-backed instances.
 
-The AWS SSH key id.
+##### --ebs-no-delete-on-term
+
+Do not delete EBS volumn on instance termination.
 
 ##### --flavor FLAVOR (-f)
 
@@ -286,21 +339,30 @@ The flavor of EC2 instance (m1.small, m1.medium, etc).
 
 The default value is `"m1.small"`.
 
-##### --image IMAGE (-I)
-
-The AMI for the EC2 instance.
-
-##### --availability-zone ZONE (-Z)
-
-The availability zone for the EC2 instance.
-
-The default value is `"us-east-1b"`.
-
 ##### --groups X,Y,Z (-G)
 
 The security groups for this EC2 instance.
 
 The default value is `"infrastructure"`.
+
+##### --image IMAGE (-I)
+
+The AMI for the EC2 instance.
+
+##### --region REGION
+
+The desired AWS region, such as `"us-east-1"` or `"us-west-2"`.
+
+The default value is `"us-east-1"` but is strongly encouraged to be set
+explicitly.
+
+##### --subnet SUBNET-ID (-s)
+
+Create node in this Virtual Private Cloud Subnet ID (implies VPC mode).
+
+##### --ssh-key KEY (-S)
+
+The AWS SSH key id.
 
 ##### --tags T=V\[,T=V,...\] (-T)
 
@@ -311,15 +373,8 @@ The resulting set will include:
 * `"Node=#{config[:chef_node_name]}"`
 * `"Role=chef_server"`
 
-##### --ebs-size SIZE
-
-The size of the EBS volume in GB, for EBS-backed instances.
-
-##### --ebs-no-delete-on-term
-
-Do not delete EBS volumn on instance termination.
-
 ### <a name="knife-server-bootstrap-standalone"></a> knife server bootstrap standalone
+
 Provisions a standalone server that is reachable on the network and sets up
 an Open Source Chef Server as described [above](#knife-server-bootstrap). You
 are responsible for providing the server so it could be a physical machine,
@@ -477,7 +532,9 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [chef_bootstrap_knife_rb]:  https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
 [chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
 [docs_knife]:               http://docs.opscode.com/config_rb_knife.html
+[docs_knife_ec2]:           http://docs.opscode.com/plugin_knife_ec2.html
 [jtimberman]:               https://github.com/jtimberman
+[install_chef]:             http://www.opscode.com/chef/install/
 [knife-ec2]:                https://github.com/opscode/knife-ec2
 [stevendanna]:              https://github.com/stevendanna
 [vagrant_site]:             http://vagrantup.com/
