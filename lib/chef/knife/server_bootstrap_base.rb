@@ -63,7 +63,7 @@ class Chef
 
           option :log_level,
             :short => "-l LEVEL",
-            :long => "--log_level LEVEL",
+            :long => "--log-level LEVEL",
             :description  => "Set the log level (debug, info, warn, error, fatal)",
             :proc => Proc.new { |v| Chef::Config[:knife][:log_level] = v.to_sym },
             :default => :error
