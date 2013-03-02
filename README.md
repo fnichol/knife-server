@@ -52,7 +52,7 @@ $ knife server bootstrap standalone \
   --node-name chefapalooza.example.com \
   --host 192.168.33.10 \
   --ssh-user vagrant \
-  --ssh--password vagrant
+  --ssh-password vagrant
 ```
 
 Taking a backup of all node, role, data bag, and environment data is also a
