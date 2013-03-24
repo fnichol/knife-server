@@ -52,8 +52,9 @@ class Chef
       end
 
       def standalone_bootstrap
-        ENV['WEBUI_PASSWORD'] = config[:webui_password]
-        ENV['AMQP_PASSWORD'] = config[:amqp_password]
+        ENV['WEBUI_PASSWORD'] = config[:webui_password] || options[:webui_password][:default]
+        ENV['AMQP_PASSWORD'] = config[:amqp_password] || options[:amqp_password][:default]
+
         bootstrap = Chef::Knife::Bootstrap.new
         bootstrap.name_args = [ config[:host] ]
         Chef::Knife::Bootstrap.options.keys.each do |attr|
