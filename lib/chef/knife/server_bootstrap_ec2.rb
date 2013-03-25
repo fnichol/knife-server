@@ -67,8 +67,9 @@ class Chef
       end
 
       def ec2_bootstrap
-        ENV['WEBUI_PASSWORD'] = config[:webui_password]
-        ENV['AMQP_PASSWORD'] = config[:amqp_password]
+        ENV['WEBUI_PASSWORD'] = config_val(:webui_password)
+        ENV['AMQP_PASSWORD'] = config_val(:amqp_password)
+        ENV['NO_TEST'] = "1" if config[:no_test]
         bootstrap = Chef::Knife::Ec2ServerCreate.new
         Chef::Knife::Ec2ServerCreate.options.keys.each do |attr|
           bootstrap.config[attr] = config_val(attr)
