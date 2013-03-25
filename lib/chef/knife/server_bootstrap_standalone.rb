@@ -55,7 +55,7 @@ class Chef
         ENV['WEBUI_PASSWORD'] = config[:webui_password] || options[:webui_password][:default]
         ENV['AMQP_PASSWORD'] = config[:amqp_password] || options[:amqp_password][:default]
 
-        ENV['NO_TEST'] = 1 if config[:no_test]
+        ENV['NO_TEST'] = "1" if config[:no_test]
 
         bootstrap = Chef::Knife::Bootstrap.new
         bootstrap.name_args = [ config[:host] ]
