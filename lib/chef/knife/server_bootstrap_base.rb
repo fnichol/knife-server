@@ -73,6 +73,11 @@ class Chef
             :description  => "Set the log level (debug, info, warn, error, fatal)",
             :proc => Proc.new { |v| Chef::Config[:knife][:log_level] = v.to_sym },
             :default => :error
+
+          option :no_test,
+            :short => "-n",
+            :long => "--no-test",
+            :description => "Do not run opscode pedant as a part of the omnibus installation"
         end
       end
 

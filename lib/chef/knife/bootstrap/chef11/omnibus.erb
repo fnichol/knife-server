@@ -25,6 +25,7 @@ export prerelease="<%= @config[:prerelease] == true %>"
 export webui_enable="<%= @chef_config[:knife][:webui_enable] == true %>"
 export webui_password="<%= ENV['WEBUI_PASSWORD'] %>"
 export amqp_password="<%= ENV['AMQP_PASSWORD'] %>"
+export no_test="<%= ENV['NO_TEST'] %>"
 
 <%= render "common.sh" %>
 
@@ -57,8 +58,11 @@ install_package
 prepare_chef_server_rb
 symlink_binaries
 reconfigure_chef_server
-test_chef_server
+if [ ! -n "$no_test"]
+then
+  test_chef_server
+fi
 configure_firewall
 
-banner "Bootstraping Chef Server on ${hostname} is complete."
+banner "Bootstrapping Chef Server on ${hostname} is complete."
 '

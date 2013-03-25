@@ -30,6 +30,23 @@ rpm_filename() {
   filename="chef-${version}.${machine}.rpm"
 }
 
+failed_download() {
+  warn "We encountered an error downloading the package."
+  echo
+  exit 5
+}
+
+perform_download() {
+  case "$1" in
+    wget)
+      wget -O "$2" "$3" 2>/tmp/stderr || failed_download
+    ;;
+    curl)
+      curl -L "$3" > "$2" || failed_download
+    ;;
+  esac
+}
+
 download_package() {
   if [ -f "/opt/chef-server/bin/chef-server-ctl" ] ; then
     info "Chef Server detected in /opt/chef-server, skipping download"
@@ -39,16 +56,18 @@ download_package() {
   local url="$(package_url)"
 
   banner "Downloading Chef Server package from $url to $tmp_dir/$filename"
+
   if exists wget;
   then
-    wget -O "$tmp_dir/$filename" $url 2>/tmp/stderr
+    perform_download wget "$tmp_dir/$filename" $url
   elif exists curl;
   then
-    curl -L $url > "$tmp_dir/$filename"
+    perform_download curl "$tmp_dir/$filename" $url
   else
     warn "Cannot find wget or curl - cannot install Chef Server!"
     exit 5
   fi
+
   info "Download complete"
 }
 

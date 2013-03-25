@@ -52,13 +52,17 @@ class Chef
       end
 
       def standalone_bootstrap
-        ENV['WEBUI_PASSWORD'] = config[:webui_password]
-        ENV['AMQP_PASSWORD'] = config[:amqp_password]
+        ENV['WEBUI_PASSWORD'] = config[:webui_password] || options[:webui_password][:default]
+        ENV['AMQP_PASSWORD'] = config[:amqp_password] || options[:amqp_password][:default]
+
+        ENV['NO_TEST'] = "1" if config[:no_test]
+
         bootstrap = Chef::Knife::Bootstrap.new
         bootstrap.name_args = [ config[:host] ]
         Chef::Knife::Bootstrap.options.keys.each do |attr|
           bootstrap.config[attr] = config_val(attr)
         end
+        bootstrap.ui = self.ui
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap.config[:use_sudo] = true unless config_val(:ssh_user) == "root"
         bootstrap

@@ -1,4 +1,4 @@
-bash -c '
+bash <<'EOS'
 <%
   require 'erb'
 
@@ -45,7 +45,7 @@ add_opscode_apt_repo() {
   apt-get update
   # permanent upgradeable keyring
   apt-get install -y --force-yes opscode-keyring
-  apt-get upgrade -y
+  apt-get dist-upgrade -y
 }
 
 preseed_chef_pkg() {
@@ -64,7 +64,8 @@ PRESEED
 install_chef_server() {
   preseed_chef_pkg
 
-  apt-get install -y --force-yes chef chef-server libshadow-ruby1.8
+  apt-get update
+  apt-get install -y chef chef-server libshadow-ruby1.8
 }
 
 config_chef_solo() {
@@ -105,5 +106,5 @@ add_opscode_apt_repo
 install_chef_server
 enable_ssl_proxy
 
-banner "Bootstraping Chef Server on ${hostname} is complete."
-'
+banner "Bootstrapping Chef Server on ${hostname} is complete."
+EOS

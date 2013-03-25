@@ -12,6 +12,7 @@ report_bug() {
   warn "Please file a bug report at https://github.com/fnichol/knife-server/issues"
   warn " "
   warn "Please detail your operating system, version and any other relevant details"
+  echo
 }
 
 exists() {

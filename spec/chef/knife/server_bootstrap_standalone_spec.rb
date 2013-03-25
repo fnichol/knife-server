@@ -107,6 +107,17 @@ describe Chef::Knife::ServerBootstrapStandalone do
       bootstrap.should be_a(Chef::Knife::Bootstrap)
     end
 
+    it "copies our UI object to the bootstrap object" do
+      bootstrap.ui.object_id.should eq(@knife.ui.object_id)
+    end
+
+    it "sets NO_TEST in the environment when the option is provided" do
+      @knife.config[:no_test] = true
+      bootstrap.should_not be_nil
+      ENV["NO_TEST"].should eq("1")
+      ENV.delete("NO_TEST")
+    end
+
     it "configs the bootstrap's chef_node_name" do
       bootstrap.config[:chef_node_name].should eq("shave.yak")
     end
@@ -209,7 +220,7 @@ describe Chef::Knife::ServerBootstrapStandalone do
     end
 
     let(:bootstrap) do
-      stub(:run => true, :config => Hash.new, :name_args= => true)
+      stub(:run => true, :config => Hash.new, :ui= => true, :name_args= => true)
     end
 
     let(:ssh)         { stub(:exec! => true) }
