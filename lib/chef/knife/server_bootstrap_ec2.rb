@@ -112,10 +112,13 @@ class Chef
       end
 
       def config_security_group(name = nil)
-        name = config_val(:security_groups).first if name.nil?
-
-        ::Knife::Server::Ec2SecurityGroup.new(ec2_connection, ui).
-          configure_chef_server_group(name, :description => "#{name} group")
+        if config[:security_group_ids].nil? || config[:security_group_ids].empty?
+          name = config_val(:security_groups).first if name.nil?
+          ::Knife::Server::Ec2SecurityGroup.new(ec2_connection, ui).
+            configure_chef_server_group(name, :description => "#{name} group")
+        else
+          config[:security_groups] = nil
+        end
       end
 
       def bootstrap_tags
