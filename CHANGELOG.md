@@ -5,7 +5,7 @@
 * Pull request [#29][]: Fix README typo in ssh password argument. ([@ranjib][])
 * Pull request [#34][]: Fix AMQP_PASSWORD propagation. ([@erikh][])
 
-### Improvement
+### Improvements
 
 * Pull request [#35][]: Add VPC support. ([@jssjr][])
 * Pull request [#34][]: Provide better information when the package can't be
