@@ -1,4 +1,15 @@
-## 1.0.1.dev / Unreleased
+## 1.0.1 / 2013-04-11
+
+### Bug fixes
+
+* Pull request [#29][]: Fix README typo in ssh password argument. ([@ranjib][])
+* Pull request [#34][]: Fix AMQP_PASSWORD propagation. ([@erikh][])
+
+### Improvement
+
+* Pull request [#35][]: Add VPC support. ([@jssjr][])
+* Pull request [#34][]: Provide better information when the package can't be
+  downloaded. ([@erikh][])
 
 
 ## 1.0.0 / 2013-02-28
@@ -140,10 +151,15 @@ The initial release.
 [#11]: https://github.com/fnichol/knife/issues/11
 [#13]: https://github.com/fnichol/knife/issues/13
 [#15]: https://github.com/fnichol/knife/issues/15
+[#29]: https://github.com/fnichol/knife/issues/29
+[#34]: https://github.com/fnichol/knife/issues/34
+[#35]: https://github.com/fnichol/knife/issues/35
 [@danryan]: https://github.com/danryan
 [@erikh]: https://github.com/erikh
 [@fnichol]: https://github.com/fnichol
 [@iafonov]: https://github.com/iafonov
+[@jssjr]: https://github.com/jssjr
+[@ranjib]: https://github.com/ranjib
 [@stormsilver]: https://github.com/stormsilver
 [@wpeterson]: https://github.com/wpeterson
 [@xdissent]: https://github.com/xdissent
