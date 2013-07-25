@@ -15,6 +15,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Knife::Server::VERSION
 
+  gem.required_ruby_version = ">= 1.9.2"
+
   gem.add_dependency "fog",       "~> 1.3"
   gem.add_dependency "net-ssh"
   gem.add_dependency "chef",      ">= 0.10.10"
