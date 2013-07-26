@@ -35,6 +35,11 @@ class Chef
         :long => "--backup-dir DIR",
         :description => "The directory to host backup files"
 
+      option :pretty_print,
+        :short => "-P",
+        :long => "--pretty_print",
+        :description => "Generate Pretty JSON for file."
+
       def run
         validate!
         components = name_args.empty? ? COMPONENTS.keys : name_args
@@ -91,7 +96,11 @@ class Chef
         obj = c[:klass].load(name)
         ui.msg "Backing up #{c[:singular]}[#{name}]"
         ::File.open(::File.join(dir_path, "#{name}.json"), "wb") do |f|
-          f.write(obj.to_json)
+          if config[:pretty_print]
+            f.write(JSON.pretty_generate(obj))
+          else
+            f.write(obj.to_json)
+          end
         end
       end
 
@@ -103,7 +112,11 @@ class Chef
           obj = Chef::DataBagItem.load(name, item_name)
           ui.msg "Backing up #{c[:singular]}[#{name}][#{item_name}]"
           ::File.open(::File.join(item_path, "#{item_name}.json"), "wb") do |f|
-            f.write(obj.to_json)
+            if config[:pretty_print]
+              f.write(JSON.pretty_generate(obj))
+            else
+              f.write(obj.to_json)
+            end
           end
         end
       end
