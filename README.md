@@ -4,8 +4,9 @@
 [![Code Climate](https://codeclimate.com/github/fnichol/knife-server.png)](https://codeclimate.com/github/fnichol/knife-server)
 
 An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
-Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
-Server or Hosted Chef's node, role, data bag, and environment JSON data.
+Server on Amazon's EC2, Linode or a standalone server. Backup and restore
+your Chef Server or Hosted Chef's node, role, data bag, and environment JSON
+data.
 
 ## <a name="usage"></a> Usage
 
@@ -34,6 +35,19 @@ up in a `knife.rb` file, it becomes much shorter:
 $ knife server bootstrap ec2 \
   --node-name chefapalooza.example.com \
   --ssh-user ubuntu
+```
+
+To spin up your Chef Server on Linode:
+
+```bash
+knife server bootstrap linode \
+  --node-name linny.example.com \
+  --linode-node-name linny \
+  --linode-api-key $LINODE_API_KEY \
+  --linode-datacenter 3 \
+  --linode-flavor 1 \
+  --linode-image 99 \
+  --ssh-password 'testing1234'
 ```
 
 Or maybe you want to try out a Chef Server using [Vagrant][vagrant_site]?
@@ -94,11 +108,12 @@ Add this line to your application's Gemfile:
 gem 'knife-server'
 ```
 
-**Note** If you want to use the `bootstrap ec2` subcommand you will need to
-explicitly add this to your Gemfile with:
+**Note** If you want to use the `bootstrap ec2` or `bootstrap linode`
+subcommands you will need to explicitly add this to your Gemfile with:
 
 ```ruby
 gem 'knife-ec2'
+gem 'knife-linode'
 ```
 
 Finally execute:
@@ -113,8 +128,8 @@ Or install it yourself as:
 $ gem install knife-server
 ```
 
-(Don't forget a `gem install knife-ec2` if using the `bootstrap ec2`
-subcommand).
+(Don't forget a `gem install knife-ec2` or `gem install knife-linode` if using
+the `bootstrap ec2` or `bootstrap linode` subcommands).
 
 Next, you **must** set up a [knife.rb configuration](#installation-knife) so
 that the shipped Knife subcommands know where to place and modify key files,
@@ -158,11 +173,15 @@ add some of the common configuration to your `~/.chef/knife.rb` or your
 projects `.chef/knife.rb` file like so:
 
 ```ruby
+# for aws/ec2
 knife[:aws_access_key_id] = "MY_KEY"
 knife[:aws_secret_access_key] = "MY_SECRET"
 knife[:region] = "us-west-2"
 knife[:availability_zone] = "us-west-2a"
 knife[:flavor] = "t1.micro"
+
+# for linode
+knife[:linode_api_key] = "MY_KEY"
 ```
 
 Better yet, why not try a more generic [knife.rb][chef_bootstrap_knife_rb] file
@@ -375,6 +394,69 @@ The resulting set will include:
 * `"Node=#{config[:chef_node_name]}"`
 * `"Role=chef_server"`
 
+### <a name="knife-server-bootstrap-linode"></a> knife server bootstrap linode
+
+**Note:** You must install the [knife-linode gem][knife-linode] to use this
+subcommand. This was done to keep the dependencies of this library lighter and
+to make future cloud adapter support easier to add.
+
+Provisions a Linode instance and sets up an Open Source Chef Server as
+described [above](#knife-server-bootstrap).
+
+#### Configuration
+
+This subcommand imports all relavent options from the knife-linode gem. For
+detailed documentation relating to these options, please visit the [docs
+page][docs_knife_linode].
+
+##### --linode-api-key KEY (-A)
+
+Your Linode API Key.
+
+This option is **required**.
+
+##### --linode-datacenter DATACENTER (-D)
+
+The datacenter for the server.
+
+The default value is `3` (Use `knife linode datacenter list` for a list of
+choices)
+
+##### --linode-flavor FLAVOR (-f)
+
+The flavor of server.
+
+The default value is `1`. (Use `knife linode flavor list` for a list of
+choices)
+
+##### --linode-image IMAGE (-i)
+
+The image for the server.
+
+The default value is `93`. (Use `knife linode image list` for a list of
+choices)
+
+##### --linode-kernel KERNEL (-k)
+
+The kernel for the server.
+
+The default value is `138`. (Use `knife linode kernel list` for a list of
+choices)
+
+##### --linode-node-name NAME (-L)
+
+The Linode node name for your new node.
+
+This option is **required**.
+
+##### --ssh-password PASSWORD (-P)
+
+The ssh password. If a password is not provided, then a random password will be
+generated and echoed in logging output. It is recommended that you specify a
+password so that you know how to connect later.
+
+The default value is a random password.
+
 ### <a name="knife-server-bootstrap-standalone"></a> knife server bootstrap standalone
 
 Provisions a standalone server that is reachable on the network and sets up
@@ -535,8 +617,10 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
 [docs_knife]:               http://docs.opscode.com/config_rb_knife.html
 [docs_knife_ec2]:           http://docs.opscode.com/plugin_knife_ec2.html
+[docs_knife_linode]:        http://docs.opscode.com/plugin_knife_linode.html
 [jtimberman]:               https://github.com/jtimberman
 [install_chef]:             http://www.opscode.com/chef/install/
 [knife-ec2]:                https://github.com/opscode/knife-ec2
+[knife-linode]:             https://github.com/opscode/knife-linode
 [stevendanna]:              https://github.com/stevendanna
 [vagrant_site]:             http://vagrantup.com/
