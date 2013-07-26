@@ -35,11 +35,12 @@
 <a href="https://codeclimate.com/github/fnichol/knife-server"><img src="https://codeclimate.com/github/fnichol/knife-server.png" alt="Code Climate"></a></p>
 
 <p>An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
-Server on Amazon's EC2 or a standalone server. Backup and restore your Chef
-Server or Hosted Chef's node, role, data bag, and environment JSON data.</p>
+Server on Amazon's EC2, Linode or a standalone server. Backup and restore
+your Chef Server or Hosted Chef's node, role, data bag, and environment JSON
+data.</p>
 
 <h2>
-<a name="usage"></a> Usage</h2>
+<a name="-usage" class="anchor" href="#-usage"><span class="octicon octicon-link"></span></a><a name="usage"></a> Usage</h2>
 
 <p>Follow the <a href="#installation">installation</a> instructions, then you are ready
 to create your very own Chef Server running Ubuntu on Amazon's EC2 service:</p>
@@ -66,14 +67,28 @@ up in a <code>knife.rb</code> file, it becomes much shorter:</p>
   --ssh-user ubuntu
 </pre></div>
 
+<p>To spin up your Chef Server on Linode:</p>
+
+<div class="highlight"><pre>knife server bootstrap linode <span class="se">\</span>
+  --node-name linny.example.com <span class="se">\</span>
+  --linode-node-name linny <span class="se">\</span>
+  --linode-api-key <span class="nv">$LINODE_API_KEY</span> <span class="se">\</span>
+  --linode-datacenter 3 <span class="se">\</span>
+  --linode-flavor 1 <span class="se">\</span>
+  --linode-image 99 <span class="se">\</span>
+  --ssh-password <span class="s1">'testing1234'</span>
+</pre></div>
+
 <p>Or maybe you want to try out a Chef Server using <a href="http://vagrantup.com/">Vagrant</a>?</p>
 
 <div class="highlight"><pre><span class="nv">$ </span>cat <span class="s">&lt;&lt;VAGRANTFILE &gt; Vagrantfile</span>
-<span class="s">Vagrant::Config.run do |config|</span>
+<span class="s">Vagrant.configure("2") do |config|</span>
 <span class="s">  config.vm.box = "precise64"</span>
 <span class="s">  config.vm.box_url = "http://files.vagrantup.com/precise64.box"</span>
-<span class="s">  config.vm.network :hostonly, "192.168.33.10"</span>
-<span class="s">  config.vm.customize ["modifyvm", :id, "--memory", 2048]</span>
+<span class="s">  config.vm.network :private_network, ip: "192.168.33.10"</span>
+<span class="s">  config.vm.provider :virtualbox do |vb|</span>
+<span class="s">    vb.customize ["modifyvm", :id, "--memory", 2048]</span>
+<span class="s">  end</span>
 <span class="s">end</span>
 <span class="s">VAGRANTFILE</span>
 <span class="nv">$ </span>vagrant up
@@ -111,17 +126,18 @@ Well except for old client keys on your nodes, but this is being looked into.</p
 <p>See <a href="#subcommands">below</a> for more details.</p>
 
 <h2>
-<a name="installation"></a> Installation</h2>
+<a name="-installation" class="anchor" href="#-installation"><span class="octicon octicon-link"></span></a><a name="installation"></a> Installation</h2>
 
 <p>Add this line to your application's Gemfile:</p>
 
 <div class="highlight"><pre><span class="n">gem</span> <span class="s1">'knife-server'</span>
 </pre></div>
 
-<p><strong>Note</strong> If you want to use the <code>bootstrap ec2</code> subcommand you will need to
-explicitly add this to your Gemfile with:</p>
+<p><strong>Note</strong> If you want to use the <code>bootstrap ec2</code> or <code>bootstrap linode</code>
+subcommands you will need to explicitly add this to your Gemfile with:</p>
 
 <div class="highlight"><pre><span class="n">gem</span> <span class="s1">'knife-ec2'</span>
+<span class="n">gem</span> <span class="s1">'knife-linode'</span>
 </pre></div>
 
 <p>Finally execute:</p>
@@ -134,15 +150,15 @@ explicitly add this to your Gemfile with:</p>
 <div class="highlight"><pre><span class="nv">$ </span>gem install knife-server
 </pre></div>
 
-<p>(Don't forget a <code>gem install knife-ec2</code> if using the <code>bootstrap ec2</code>
-subcommand).</p>
+<p>(Don't forget a <code>gem install knife-ec2</code> or <code>gem install knife-linode</code> if using
+the <code>bootstrap ec2</code> or <code>bootstrap linode</code> subcommands).</p>
 
 <p>Next, you <strong>must</strong> set up a <a href="#installation-knife">knife.rb configuration</a> so
 that the shipped Knife subcommands know where to place and modify key files,
 backup directories, etc.</p>
 
 <h3>
-<a name="installation-knife"></a> knife.rb Setup</h3>
+<a name="-kniferb-setup" class="anchor" href="#-kniferb-setup"><span class="octicon octicon-link"></span></a><a name="installation-knife"></a> knife.rb Setup</h3>
 
 <p>When creating a Chef Server the validation key and admin client key will
 be installed on your workstation. Therefore, several knife configuration
@@ -181,21 +197,25 @@ quickly becomes tiring, repetitive, and error-prone. A better solution is to
 add some of the common configuration to your <code>~/.chef/knife.rb</code> or your
 projects <code>.chef/knife.rb</code> file like so:</p>
 
-<div class="highlight"><pre><span class="n">knife</span><span class="o">[</span><span class="ss">:aws_access_key_id</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_KEY"</span>
+<div class="highlight"><pre><span class="c1"># for aws/ec2</span>
+<span class="n">knife</span><span class="o">[</span><span class="ss">:aws_access_key_id</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_KEY"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:aws_secret_access_key</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_SECRET"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:region</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"us-west-2"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:availability_zone</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"us-west-2a"</span>
 <span class="n">knife</span><span class="o">[</span><span class="ss">:flavor</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"t1.micro"</span>
+
+<span class="c1"># for linode</span>
+<span class="n">knife</span><span class="o">[</span><span class="ss">:linode_api_key</span><span class="o">]</span> <span class="o">=</span> <span class="s2">"MY_KEY"</span>
 </pre></div>
 
 <p>Better yet, why not try a more generic <a href="https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb">knife.rb</a> file
 from the <a href="https://github.com/fnichol/chef-bootstrap-repo/">chef-bootstrap-repo</a> project?</p>
 
 <h2>
-<a name="subcommands"></a> Subcommands</h2>
+<a name="-subcommands" class="anchor" href="#-subcommands"><span class="octicon octicon-link"></span></a><a name="subcommands"></a> Subcommands</h2>
 
 <h3>
-<a name="knife-server-bootstrap"></a> knife server bootstrap (Common Options)</h3>
+<a name="-knife-server-bootstrap-common-options" class="anchor" href="#-knife-server-bootstrap-common-options"><span class="octicon octicon-link"></span></a><a name="knife-server-bootstrap"></a> knife server bootstrap (Common Options)</h3>
 
 <p>These subcommands will install and configure an Open Source Chef Server on
 several different clouds/environments. The high level step taken are as
@@ -225,9 +245,11 @@ generated instead.</li>
 </ol><p><strong>Note</strong> <code>knife server bootstrap</code> can not be invoked directly; a subcommand
 must be selected which determines the provisioning strategy.</p>
 
-<h4>Common Configuration</h4>
+<h4>
+<a name="common-configuration" class="anchor" href="#common-configuration"><span class="octicon octicon-link"></span></a>Common Configuration</h4>
 
-<h5>--node-name NAME (-N)</h5>
+<h5>
+<a name="--node-name-name--n" class="anchor" href="#--node-name-name--n"><span class="octicon octicon-link"></span></a>--node-name NAME (-N)</h5>
 
 <p>The name of your new Chef Server. The hostname of the system will be set to
 this value and the self signed SSL certificate will use this value as its CN.
@@ -235,7 +257,8 @@ Ideally this will correspond to the A or CNAME DNS record.</p>
 
 <p>This option is <strong>required</strong>.</p>
 
-<h5>--platform PLATFORM (-P)</h5>
+<h5>
+<a name="--platform-platform--p" class="anchor" href="#--platform-platform--p"><span class="octicon octicon-link"></span></a>--platform PLATFORM (-P)</h5>
 
 <p>The platform type that will be bootstrapped. By convention a bootstrap
 template of <code>chef-server-#{platform}.erb</code> will be searched for in the
@@ -245,7 +268,8 @@ template lookup locations (gems, .chef directory, etc.).</p>
 packages have been created. For more details, visit the <a href="http://www.opscode.com/chef/install/">Install
 Chef</a> page and click on <em>"Chef Server"</em>.</p>
 
-<h5>--ssh-user USER (-x)</h5>
+<h5>
+<a name="--ssh-user-user--x" class="anchor" href="#--ssh-user-user--x"><span class="octicon octicon-link"></span></a>--ssh-user USER (-x)</h5>
 
 <p>The SSH username used when bootstrapping the Chef Server node. Note that the
 some Amazon Machine Images (AMIs) such as the official Canonical Ubuntu images
@@ -253,63 +277,73 @@ use non-root SSH users (<code>"ubuntu"</code> for Ubuntu AMIs).</p>
 
 <p>The default value is <code>"root"</code>.</p>
 
-<h5>--ssh-port PORT (-p)</h5>
+<h5>
+<a name="--ssh-port-port--p" class="anchor" href="#--ssh-port-port--p"><span class="octicon octicon-link"></span></a>--ssh-port PORT (-p)</h5>
 
 <p>The SSH port used when bootstrapping the Chef Server node.</p>
 
 <p>The default value is <code>"22"</code>.</p>
 
-<h5>--[no-]host-key-verify</h5>
+<h5>
+<a name="--no-host-key-verify" class="anchor" href="#--no-host-key-verify"><span class="octicon octicon-link"></span></a>--[no-]host-key-verify</h5>
 
 <p>Verify and cache SSH host key when connecting.</p>
 
 <p>The default value is <code>true</code></p>
 
-<h5>--identity-file IDENTITY_FILE (-i)</h5>
+<h5>
+<a name="--identity-file-identity_file--i" class="anchor" href="#--identity-file-identity_file--i"><span class="octicon octicon-link"></span></a>--identity-file IDENTITY_FILE (-i)</h5>
 
 <p>The SSH identity file (private SSH key) used for authentication.</p>
 
-<h5>--prerelease</h5>
+<h5>
+<a name="--prerelease" class="anchor" href="#--prerelease"><span class="octicon octicon-link"></span></a>--prerelease</h5>
 
 <p>Installs a pre-release Chef gem rather than a stable release version.</p>
 
-<h5>--bootstrap-version VERSION</h5>
+<h5>
+<a name="--bootstrap-version-version" class="anchor" href="#--bootstrap-version-version"><span class="octicon octicon-link"></span></a>--bootstrap-version VERSION</h5>
 
 <p>The version of Chef to install. For Chef 11 installations (the default), you
 can provide the version of Omnibus package you want installed. To install a
 Chef 10 server, set this value to <code>"10"</code>.</p>
 
-<h5>--template-file TEMPLATE</h5>
+<h5>
+<a name="--template-file-template" class="anchor" href="#--template-file-template"><span class="octicon octicon-link"></span></a>--template-file TEMPLATE</h5>
 
 <p>The full path to location of template to use.</p>
 
-<h5>--distro DISTRO (-d)</h5>
+<h5>
+<a name="--distro-distro--d" class="anchor" href="#--distro-distro--d"><span class="octicon octicon-link"></span></a>--distro DISTRO (-d)</h5>
 
 <p>Bootstraps the Chef Server using a particular bootstrap template.</p>
 
 <p>The default is <code>"chef11/#{platform}"</code>.</p>
 
-<h5>--[no-]webui-enable</h5>
+<h5>
+<a name="--no-webui-enable" class="anchor" href="#--no-webui-enable"><span class="octicon octicon-link"></span></a>--[no-]webui-enable</h5>
 
 <p>Whether or no the WebUI interface will be installed and enabled.</p>
 
 <p>The default value is <code>false</code>.</p>
 
-<h5>--webui-password PASSWORD</h5>
+<h5>
+<a name="--webui-password-password" class="anchor" href="#--webui-password-password"><span class="octicon octicon-link"></span></a>--webui-password PASSWORD</h5>
 
 <p>The initial password for the WebUI admin account, root user account, and
 workstation user account.</p>
 
 <p>The default value is <code>"chefchef"</code>.</p>
 
-<h5>--amqp-password PASSWORD</h5>
+<h5>
+<a name="--amqp-password-password" class="anchor" href="#--amqp-password-password"><span class="octicon octicon-link"></span></a>--amqp-password PASSWORD</h5>
 
 <p>The initial password for AMQP.</p>
 
 <p>The default value is <code>"chefchef"</code>.</p>
 
 <h3>
-<a name="knife-server-bootstrap-ec2"></a> knife server bootstrap ec2</h3>
+<a name="-knife-server-bootstrap-ec2" class="anchor" href="#-knife-server-bootstrap-ec2"><span class="octicon octicon-link"></span></a><a name="knife-server-bootstrap-ec2"></a> knife server bootstrap ec2</h3>
 
 <p><strong>Note:</strong> You must install the <a href="https://github.com/opscode/knife-ec2">knife-ec2 gem</a> to use this
 subcommand. This was done to keep the dependencies of this library lighter and
@@ -325,74 +359,88 @@ the Chef Server instance. TCP ports 22, 443, and 444 are permitted inbound
 for SSH, the API endpoint, and the WebUI web application respectively.</li>
 <li>An EC2 instance will be provisioned using configuration and/or defaults
 present using the <a href="https://github.com/opscode/knife-ec2">knife-ec2</a> plugin.</li>
-</ol><h4>Configuration</h4>
+</ol><h4>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h4>
 
 <p>This subcommand imports all relavent options from the knife-ec2 gem. For
 detailed documentation relating to these options, please visit the <a href="http://docs.opscode.com/plugin_knife_ec2.html">docs
 page</a>.</p>
 
-<h5>--availability-zone ZONE (-Z)</h5>
+<h5>
+<a name="--availability-zone-zone--z" class="anchor" href="#--availability-zone-zone--z"><span class="octicon octicon-link"></span></a>--availability-zone ZONE (-Z)</h5>
 
 <p>The availability zone for the EC2 instance.</p>
 
 <p>The default value is <code>"us-east-1b"</code>.</p>
 
-<h5>--aws-access-key-id KEY (-A)</h5>
+<h5>
+<a name="--aws-access-key-id-key--a" class="anchor" href="#--aws-access-key-id-key--a"><span class="octicon octicon-link"></span></a>--aws-access-key-id KEY (-A)</h5>
 
 <p>Your AWS access key ID.</p>
 
 <p>This option is <strong>required</strong>.</p>
 
-<h5>--aws-secret-access-key SECRET (-K)</h5>
+<h5>
+<a name="--aws-secret-access-key-secret--k" class="anchor" href="#--aws-secret-access-key-secret--k"><span class="octicon octicon-link"></span></a>--aws-secret-access-key SECRET (-K)</h5>
 
 <p>Your AWS API secret access key.</p>
 
 <p>This option is <strong>required</strong>.</p>
 
-<h5>--ebs-optimized</h5>
+<h5>
+<a name="--ebs-optimized" class="anchor" href="#--ebs-optimized"><span class="octicon octicon-link"></span></a>--ebs-optimized</h5>
 
 <p>Enabled optimized EBS I/O.</p>
 
-<h5>--ebs-size SIZE</h5>
+<h5>
+<a name="--ebs-size-size" class="anchor" href="#--ebs-size-size"><span class="octicon octicon-link"></span></a>--ebs-size SIZE</h5>
 
 <p>The size of the EBS volume in GB, for EBS-backed instances.</p>
 
-<h5>--ebs-no-delete-on-term</h5>
+<h5>
+<a name="--ebs-no-delete-on-term" class="anchor" href="#--ebs-no-delete-on-term"><span class="octicon octicon-link"></span></a>--ebs-no-delete-on-term</h5>
 
 <p>Do not delete EBS volumn on instance termination.</p>
 
-<h5>--flavor FLAVOR (-f)</h5>
+<h5>
+<a name="--flavor-flavor--f" class="anchor" href="#--flavor-flavor--f"><span class="octicon octicon-link"></span></a>--flavor FLAVOR (-f)</h5>
 
 <p>The flavor of EC2 instance (m1.small, m1.medium, etc).</p>
 
 <p>The default value is <code>"m1.small"</code>.</p>
 
-<h5>--groups X,Y,Z (-G)</h5>
+<h5>
+<a name="--groups-xyz--g" class="anchor" href="#--groups-xyz--g"><span class="octicon octicon-link"></span></a>--groups X,Y,Z (-G)</h5>
 
 <p>The security groups for this EC2 instance.</p>
 
 <p>The default value is <code>"infrastructure"</code>.</p>
 
-<h5>--image IMAGE (-I)</h5>
+<h5>
+<a name="--image-image--i" class="anchor" href="#--image-image--i"><span class="octicon octicon-link"></span></a>--image IMAGE (-I)</h5>
 
 <p>The AMI for the EC2 instance.</p>
 
-<h5>--region REGION</h5>
+<h5>
+<a name="--region-region" class="anchor" href="#--region-region"><span class="octicon octicon-link"></span></a>--region REGION</h5>
 
 <p>The desired AWS region, such as <code>"us-east-1"</code> or <code>"us-west-2"</code>.</p>
 
 <p>The default value is <code>"us-east-1"</code> but is strongly encouraged to be set
 explicitly.</p>
 
-<h5>--subnet SUBNET-ID (-s)</h5>
+<h5>
+<a name="--subnet-subnet-id--s" class="anchor" href="#--subnet-subnet-id--s"><span class="octicon octicon-link"></span></a>--subnet SUBNET-ID (-s)</h5>
 
 <p>Create node in this Virtual Private Cloud Subnet ID (implies VPC mode).</p>
 
-<h5>--ssh-key KEY (-S)</h5>
+<h5>
+<a name="--ssh-key-key--s" class="anchor" href="#--ssh-key-key--s"><span class="octicon octicon-link"></span></a>--ssh-key KEY (-S)</h5>
 
 <p>The AWS SSH key id.</p>
 
-<h5>--tags T=V[,T=V,...] (-T)</h5>
+<h5>
+<a name="--tags-tvtv--t" class="anchor" href="#--tags-tvtv--t"><span class="octicon octicon-link"></span></a>--tags T=V[,T=V,...] (-T)</h5>
 
 <p>The tags for this EC2 instance.</p>
 
@@ -402,7 +450,79 @@ explicitly.</p>
 <li><code>"Node=#{config[:chef_node_name]}"</code></li>
 <li><code>"Role=chef_server"</code></li>
 </ul><h3>
-<a name="knife-server-bootstrap-standalone"></a> knife server bootstrap standalone</h3>
+<a name="-knife-server-bootstrap-linode" class="anchor" href="#-knife-server-bootstrap-linode"><span class="octicon octicon-link"></span></a><a name="knife-server-bootstrap-linode"></a> knife server bootstrap linode</h3>
+
+<p><strong>Note:</strong> You must install the <a href="https://github.com/opscode/knife-linode">knife-linode gem</a> to use this
+subcommand. This was done to keep the dependencies of this library lighter and
+to make future cloud adapter support easier to add.</p>
+
+<p>Provisions a Linode instance and sets up an Open Source Chef Server as
+described <a href="#knife-server-bootstrap">above</a>.</p>
+
+<h4>
+<a name="configuration-1" class="anchor" href="#configuration-1"><span class="octicon octicon-link"></span></a>Configuration</h4>
+
+<p>This subcommand imports all relavent options from the knife-linode gem. For
+detailed documentation relating to these options, please visit the <a href="http://docs.opscode.com/plugin_knife_linode.html">docs
+page</a>.</p>
+
+<h5>
+<a name="--linode-api-key-key--a" class="anchor" href="#--linode-api-key-key--a"><span class="octicon octicon-link"></span></a>--linode-api-key KEY (-A)</h5>
+
+<p>Your Linode API Key.</p>
+
+<p>This option is <strong>required</strong>.</p>
+
+<h5>
+<a name="--linode-datacenter-datacenter--d" class="anchor" href="#--linode-datacenter-datacenter--d"><span class="octicon octicon-link"></span></a>--linode-datacenter DATACENTER (-D)</h5>
+
+<p>The datacenter for the server.</p>
+
+<p>The default value is <code>3</code> (Use <code>knife linode datacenter list</code> for a list of
+choices)</p>
+
+<h5>
+<a name="--linode-flavor-flavor--f" class="anchor" href="#--linode-flavor-flavor--f"><span class="octicon octicon-link"></span></a>--linode-flavor FLAVOR (-f)</h5>
+
+<p>The flavor of server.</p>
+
+<p>The default value is <code>1</code>. (Use <code>knife linode flavor list</code> for a list of
+choices)</p>
+
+<h5>
+<a name="--linode-image-image--i" class="anchor" href="#--linode-image-image--i"><span class="octicon octicon-link"></span></a>--linode-image IMAGE (-i)</h5>
+
+<p>The image for the server.</p>
+
+<p>The default value is <code>93</code>. (Use <code>knife linode image list</code> for a list of
+choices)</p>
+
+<h5>
+<a name="--linode-kernel-kernel--k" class="anchor" href="#--linode-kernel-kernel--k"><span class="octicon octicon-link"></span></a>--linode-kernel KERNEL (-k)</h5>
+
+<p>The kernel for the server.</p>
+
+<p>The default value is <code>138</code>. (Use <code>knife linode kernel list</code> for a list of
+choices)</p>
+
+<h5>
+<a name="--linode-node-name-name--l" class="anchor" href="#--linode-node-name-name--l"><span class="octicon octicon-link"></span></a>--linode-node-name NAME (-L)</h5>
+
+<p>The Linode node name for your new node.</p>
+
+<p>This option is <strong>required</strong>.</p>
+
+<h5>
+<a name="--ssh-password-password--p" class="anchor" href="#--ssh-password-password--p"><span class="octicon octicon-link"></span></a>--ssh-password PASSWORD (-P)</h5>
+
+<p>The ssh password. If a password is not provided, then a random password will be
+generated and echoed in logging output. It is recommended that you specify a
+password so that you know how to connect later.</p>
+
+<p>The default value is a random password.</p>
+
+<h3>
+<a name="-knife-server-bootstrap-standalone" class="anchor" href="#-knife-server-bootstrap-standalone"><span class="octicon octicon-link"></span></a><a name="knife-server-bootstrap-standalone"></a> knife server bootstrap standalone</h3>
 
 <p>Provisions a standalone server that is reachable on the network and sets up
 an Open Source Chef Server as described <a href="#knife-server-bootstrap">above</a>. You
@@ -410,15 +530,18 @@ are responsible for providing the server so it could be a physical machine,
 Vagrant VM with host-only or bridged networking, or a cloud server instance
 with a known IP address or host name.</p>
 
-<h4>Configuration</h4>
+<h4>
+<a name="configuration-2" class="anchor" href="#configuration-2"><span class="octicon octicon-link"></span></a>Configuration</h4>
 
-<h5>--host FQDN_OR_IP (-H)</h5>
+<h5>
+<a name="--host-fqdn_or_ip--h" class="anchor" href="#--host-fqdn_or_ip--h"><span class="octicon octicon-link"></span></a>--host FQDN_OR_IP (-H)</h5>
 
 <p>Host name or IP address of the host to bootstrap.</p>
 
 <p>This option is <strong>required</strong>.</p>
 
-<h5>--ssh-password PASSWORD (-P)</h5>
+<h5>
+<a name="--ssh-password-password--p-1" class="anchor" href="#--ssh-password-password--p-1"><span class="octicon octicon-link"></span></a>--ssh-password PASSWORD (-P)</h5>
 
 <p>The SSH password used when bootstrapping the Chef Server node. If no password
 is provided but an SSH key-based authentication fails, then you will be
@@ -427,7 +550,7 @@ requires password authentication you can skip this option and type it in after
 the plugin starts.</p>
 
 <h3>
-<a name="knife-server-backup"></a> knife server backup</h3>
+<a name="-knife-server-backup" class="anchor" href="#-knife-server-backup"><span class="octicon octicon-link"></span></a><a name="knife-server-backup"></a> knife server backup</h3>
 
 <p>Pulls Chef data primitives from a Chef Server as JSON for backup. Backups can
 be taken of:</p>
@@ -441,9 +564,11 @@ be taken of:</p>
 for the <a href="https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_export.rb">BackupExport</a> knife plugin which was the inspiration
 for this implementation.</p>
 
-<h4>Configuration</h4>
+<h4>
+<a name="configuration-3" class="anchor" href="#configuration-3"><span class="octicon octicon-link"></span></a>Configuration</h4>
 
-<h5>COMPONENT[ COMPONENT ...]</h5>
+<h5>
+<a name="component-component-" class="anchor" href="#component-component-"><span class="octicon octicon-link"></span></a>COMPONENT[ COMPONENT ...]</h5>
 
 <p>The following component types are valid:</p>
 
@@ -459,7 +584,8 @@ This is equivalent to invoking:</p>
 <div class="highlight"><pre><span class="nv">$ </span>knife server backup nodes roles environments data_bags
 </pre></div>
 
-<h5>--backup-dir DIR (-D)</h5>
+<h5>
+<a name="--backup-dir-dir--d" class="anchor" href="#--backup-dir-dir--d"><span class="octicon octicon-link"></span></a>--backup-dir DIR (-D)</h5>
 
 <p>The directory to host backup files. A sub-directory for each data primitive
 type will be created. For example if the <code>backup-dir</code> was <code>/backups/chef</code>
@@ -480,7 +606,7 @@ given the following configuration (in <strong>knife.rb</strong>):</p>
 <code>/var/chef/backups/api.opscode.com_20120401T084711-0000</code> would be created.</p>
 
 <h3>
-<a name="knife-server-restore"></a> knife server restore</h3>
+<a name="-knife-server-restore" class="anchor" href="#-knife-server-restore"><span class="octicon octicon-link"></span></a><a name="knife-server-restore"></a> knife server restore</h3>
 
 <p>Restores Chef data primitives from JSON backups to a Chef Server. You can
 restore some or all of:</p>
@@ -494,9 +620,11 @@ restore some or all of:</p>
 for the <a href="https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_restore.rb">BackupRestore</a> knife plugin which was the inspiration
 for this implementation.</p>
 
-<h4>Configuration</h4>
+<h4>
+<a name="configuration-4" class="anchor" href="#configuration-4"><span class="octicon octicon-link"></span></a>Configuration</h4>
 
-<h5>COMPONENT[ COMPONENT ...]</h5>
+<h5>
+<a name="component-component--1" class="anchor" href="#component-component--1"><span class="octicon octicon-link"></span></a>COMPONENT[ COMPONENT ...]</h5>
 
 <p>The following component types are valid:</p>
 
@@ -513,7 +641,8 @@ This is equivalent to invoking:</p>
   --backup-dir /my/backup/dir
 </pre></div>
 
-<h5>--backup-dir DIR (-D)</h5>
+<h5>
+<a name="--backup-dir-dir--d-1" class="anchor" href="#--backup-dir-dir--d-1"><span class="octicon octicon-link"></span></a>--backup-dir DIR (-D)</h5>
 
 <p>The directory to containing backup JSON files. A sub-directory for each data
 primitive type is expected (the <code>knife server backup</code> subcommand provides
@@ -522,7 +651,7 @@ this format).</p>
 <p>This option is <strong>required</strong>.</p>
 
 <h2>
-<a name="roadmap"></a> Roadmap</h2>
+<a name="-roadmap" class="anchor" href="#-roadmap"><span class="octicon octicon-link"></span></a><a name="roadmap"></a> Roadmap</h2>
 
 <ul>
 <li>Support for other platforms (alternative bootstrap templates)</li>
@@ -530,7 +659,7 @@ this format).</p>
 <li>knife server backup backed by s3 (fog api)</li>
 <li>knife server restore from s3 archive (fog api)</li>
 </ul><h2>
-<a name="development"></a> Development</h2>
+<a name="-development" class="anchor" href="#-development"><span class="octicon octicon-link"></span></a><a name="development"></a> Development</h2>
 
 <ul>
 <li>Source hosted at <a href="https://github.com/fnichol/knife-server">GitHub</a>
@@ -548,19 +677,19 @@ example:</p>
 <li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
 <li>Create new Pull Request</li>
 </ol><h2>
-<a name="authors"></a> Authors</h2>
+<a name="-authors" class="anchor" href="#-authors"><span class="octicon octicon-link"></span></a><a name="authors"></a> Authors</h2>
 
 <p>Created and maintained by <a href="https://github.com/fnichol">Fletcher Nichol</a> (<a href="mailto:fnichol@nichol.ca">fnichol@nichol.ca</a>)</p>
 
 <h2>
-<a name="license"></a> License</h2>
+<a name="-license" class="anchor" href="#-license"><span class="octicon octicon-link"></span></a><a name="license"></a> License</h2>
 
 <p>Apache License, Version 2.0 (see <a href="https://github.com/fnichol/knife-server/blob/master/LICENSE">LICENSE</a>)</p>
         </section>
 
         <footer>
           Knife::Server is maintained by <a href="https://github.com/fnichol">fnichol</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
         </footer>
 
                   <script type="text/javascript">
