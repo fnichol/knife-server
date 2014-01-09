@@ -132,5 +132,7 @@ configure_firewall() {
   if [ -x "/usr/sbin/lokkit" ] ; then
     banner "Opening TCP port 443"
     /usr/sbin/lokkit -p 443:tcp
+    banner "Opening SSH port 22"
+    /usr/sbin/lokkit -p 22:tcp
   fi
 }
