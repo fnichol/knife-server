@@ -17,14 +17,14 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = ">= 1.9.2"
 
-  gem.add_dependency "fog",       "~> 1.3"
+  gem.add_dependency "fog"
   gem.add_dependency "net-ssh"
   gem.add_dependency "chef",      ">= 0.10.10"
 
   gem.add_development_dependency "knife-ec2", ">= 0.5.12"
   gem.add_development_dependency "knife-linode"
 
-  gem.add_development_dependency "rspec", "~> 2.13.0"
-  gem.add_development_dependency "fakefs", "~> 0.4.0"
+  gem.add_development_dependency "rspec", "~> 2.13"
+  gem.add_development_dependency "fakefs", "~> 0.4"
   gem.add_development_dependency "timecop", "~> 0.3"
 end
