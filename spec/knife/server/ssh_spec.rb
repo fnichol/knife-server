@@ -25,7 +25,7 @@ describe Knife::Server::SSH do
   end
 
   let(:ssh_connection) do
-    stub("SSH connection").as_null_object
+    double("SSH connection").as_null_object
   end
 
   subject { Knife::Server::SSH.new(ssh_options) }

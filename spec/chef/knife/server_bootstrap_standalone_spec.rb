@@ -29,9 +29,9 @@ describe Chef::Knife::ServerBootstrapStandalone do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerBootstrapStandalone.new
     @stdout = StringIO.new
-    @knife.ui.stub!(:stdout).and_return(@stdout)
+    @knife.ui.stub(:stdout).and_return(@stdout)
     @stderr = StringIO.new
-    @knife.ui.stub!(:stderr).and_return(@stderr)
+    @knife.ui.stub(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
     @knife.config[:ssh_user] = "root"
   end
@@ -220,11 +220,11 @@ describe Chef::Knife::ServerBootstrapStandalone do
     end
 
     let(:bootstrap) do
-      stub(:run => true, :config => Hash.new, :ui= => true, :name_args= => true)
+      double(:run => true, :config => Hash.new, :ui= => true, :name_args= => true)
     end
 
-    let(:ssh)         { stub(:exec! => true) }
-    let(:credentials) { stub.as_null_object }
+    let(:ssh)         { double(:exec! => true) }
+    let(:credentials) { double.as_null_object }
 
     it "exits if node_name option is missing" do
       @knife.config.delete(:chef_node_name)

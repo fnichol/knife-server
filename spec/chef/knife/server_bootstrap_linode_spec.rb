@@ -29,15 +29,15 @@ describe Chef::Knife::ServerBootstrapLinode do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerBootstrapLinode.new
     @stdout = StringIO.new
-    @knife.ui.stub!(:stdout).and_return(@stdout)
+    @knife.ui.stub(:stdout).and_return(@stdout)
     @stderr = StringIO.new
-    @knife.ui.stub!(:stderr).and_return(@stderr)
+    @knife.ui.stub(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
     @knife.config[:platform] = "omnibus"
     @knife.config[:ssh_user] = "root"
   end
 
-  let(:connection) { mock(Fog::Compute::AWS) }
+  let(:connection) { double(Fog::Compute::AWS) }
 
   describe "#linode_bootstrap" do
 
@@ -157,7 +157,7 @@ describe Chef::Knife::ServerBootstrapLinode do
       end
 
       let(:server) do
-        stub(:name => 'yak', :status => 1, :public_ip_address => '10.11.12.13')
+        double(:name => 'yak', :status => 1, :public_ip_address => '10.11.12.13')
       end
 
       it "returns the provisioned ip address" do
@@ -210,9 +210,9 @@ describe Chef::Knife::ServerBootstrapLinode do
       end
     end
 
-    let(:bootstrap)   { stub(:run => true, :config => Hash.new) }
-    let(:ssh)         { stub }
-    let(:credentials) { stub.as_null_object }
+    let(:bootstrap)   { double(:run => true, :config => Hash.new) }
+    let(:ssh)         { double }
+    let(:credentials) { double.as_null_object }
 
     it "exits if node_name option is missing" do
       @knife.config.delete(:chef_node_name)

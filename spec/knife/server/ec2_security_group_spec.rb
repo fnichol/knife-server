@@ -19,9 +19,9 @@
 require 'knife/server/ec2_security_group'
 
 describe Knife::Server::Ec2SecurityGroup do
-  let(:connection)  { stub }
-  let(:ui)          { stub.as_null_object }
-  let(:group)       { stub(:name => "mygroup") }
+  let(:connection)  { double }
+  let(:ui)          { double.as_null_object }
+  let(:group)       { double(:name => "mygroup") }
 
   subject do
     Knife::Server::Ec2SecurityGroup.new(connection, ui)
@@ -50,7 +50,7 @@ describe Knife::Server::Ec2SecurityGroup do
 
     context "when the group does not exist" do
       before do
-        connection.stub(:security_groups) { [stub(:name => "nope")] }
+        connection.stub(:security_groups) { [double(:name => "nope")] }
         connection.stub(:create_security_group).
           with("mygroup", "the best") { stub_groups! ; true }
       end

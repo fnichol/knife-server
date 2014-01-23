@@ -27,10 +27,10 @@ describe Chef::Knife::ServerBackup do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerBackup.new
     @stdout = StringIO.new
-    @knife.ui.stub!(:stdout).and_return(@stdout)
+    @knife.ui.stub(:stdout).and_return(@stdout)
     @knife.ui.stub(:msg)
     @stderr = StringIO.new
-    @knife.ui.stub!(:stderr).and_return(@stderr)
+    @knife.ui.stub(:stderr).and_return(@stderr)
     @knife.config[:backup_dir] = "/baks"
 
     Chef::Config[:chef_server_url] = "https://chef.example.com:9876"

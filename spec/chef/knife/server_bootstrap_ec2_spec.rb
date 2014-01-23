@@ -29,15 +29,15 @@ describe Chef::Knife::ServerBootstrapEc2 do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerBootstrapEc2.new
     @stdout = StringIO.new
-    @knife.ui.stub!(:stdout).and_return(@stdout)
+    @knife.ui.stub(:stdout).and_return(@stdout)
     @stderr = StringIO.new
-    @knife.ui.stub!(:stderr).and_return(@stderr)
+    @knife.ui.stub(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
     @knife.config[:platform] = "omnibus"
     @knife.config[:ssh_user] = "root"
   end
 
-  let(:connection) { mock(Fog::Compute::AWS) }
+  let(:connection) { double(Fog::Compute::AWS) }
 
   describe "#ec2_bootstrap" do
     before do
@@ -179,7 +179,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
       end
 
       let(:server) do
-        stub(:dns_name => 'blahblah.aws.compute.com', :state => "running",
+        double(:dns_name => 'blahblah.aws.compute.com', :state => "running",
           :tags => {'Name' => 'shavemy.yak', 'Role' => 'chef_server'})
       end
 
@@ -234,10 +234,10 @@ describe Chef::Knife::ServerBootstrapEc2 do
       end
     end
 
-    let(:bootstrap)       { stub(:run => true, :config => Hash.new) }
-    let(:security_group)  { stub }
-    let(:ssh)             { stub }
-    let(:credentials)     { stub.as_null_object }
+    let(:bootstrap)       { double(:run => true, :config => Hash.new) }
+    let(:security_group)  { double }
+    let(:ssh)             { double }
+    let(:credentials)     { double.as_null_object }
 
     it "exits if node_name option is missing" do
       def @knife.exit(code) ; end

@@ -22,7 +22,7 @@ require 'fakefs/spec_helpers'
 describe Knife::Server::Credentials do
   include FakeFS::SpecHelpers
 
-  let(:ssh)                 { stub("SSH Client") }
+  let(:ssh)                 { double("SSH Client") }
   let(:validation_key_path) { "/tmp/validation.pem" }
   let(:client_key_path)     { "/tmp/client.pem" }
 

@@ -28,15 +28,15 @@ describe Chef::Knife::ServerRestore do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerRestore.new
     @stdout = StringIO.new
-    @knife.ui.stub!(:stdout).and_return(@stdout)
+    @knife.ui.stub(:stdout).and_return(@stdout)
     @knife.ui.stub(:msg)
     @stderr = StringIO.new
-    @knife.ui.stub!(:stderr).and_return(@stderr)
+    @knife.ui.stub(:stderr).and_return(@stderr)
     @knife.config[:backup_dir] = "/baks"
   end
 
   describe "#run" do
-    let(:rest_client) { stub(:post_rest => true) }
+    let(:rest_client) { double(:post_rest => true) }
 
     before do
       Chef::Node.any_instance.stub(:save) { true }
