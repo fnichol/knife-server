@@ -50,6 +50,18 @@ knife server bootstrap linode \
   --ssh-password 'testing1234'
 ```
 
+To spin up your Chef Server on [OpenStack][openstack]:
+
+```bash
+knife server bootstrap openstack \
+  --node-name openstack.example.com \
+  --openstack-node-name openstack \
+  --openstack-username $OS_USERNAME \
+  --openstack-password $OS_PASSWORD \
+  --openstack-auth-url $OS_AUTH_URL \
+  --ssh-password 'testing1234'
+``
+
 Or maybe you want to try out a Chef Server using [Vagrant][vagrant_site]?
 
 ```bash
@@ -403,6 +415,15 @@ to make future cloud adapter support easier to add.
 Provisions a Linode instance and sets up an Open Source Chef Server as
 described [above](#knife-server-bootstrap).
 
+### <a name="knife-server-bootstrap-openstack"></a> knife server bootstrap openstack
+
+**Note:** You must install the [knife-openstack gem][knife-openstack] to use this
+subcommand. This was done to keep the dependencies of this library lighter and
+to make future cloud adapter support easier to add.
+
+Provisions a Openstack instance and sets up an Open Source Chef Server as
+described [above](#knife-server-bootstrap).
+
 #### Configuration
 
 This subcommand imports all relavent options from the knife-linode gem. For
@@ -622,5 +643,7 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [install_chef]:             http://www.opscode.com/chef/install/
 [knife-ec2]:                https://github.com/opscode/knife-ec2
 [knife-linode]:             https://github.com/opscode/knife-linode
+[knife-openstack]:          https://github.com/opscode/knife-openstack
 [stevendanna]:              https://github.com/stevendanna
 [vagrant_site]:             http://vagrantup.com/
+[openstack]:    http://openstack.org
