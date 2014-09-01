@@ -16,10 +16,10 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_bootstrap_standalone'
-require 'chef/knife/ssh'
-require 'fakefs/spec_helpers'
-require 'net/ssh'
+require "chef/knife/server_bootstrap_standalone"
+require "chef/knife/ssh"
+require "fakefs/spec_helpers"
+require "net/ssh"
 Chef::Knife::ServerBootstrapStandalone.load_deps
 
 describe Chef::Knife::ServerBootstrapStandalone do
@@ -40,7 +40,9 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
     before do
       @knife.config[:bootstrap_version] = "10"
-      @knife.stub(:determine_platform) { @knife.send(:distro_auto_map, "debian", "6") }
+      @knife.stub(:determine_platform) do
+        @knife.send(:distro_auto_map, "debian", "6")
+      end
       @knife.config[:platform] = "auto"
     end
 
@@ -51,13 +53,13 @@ describe Chef::Knife::ServerBootstrapStandalone do
       @knife.send(:bootstrap_distro).should eq("chef10/rhel")
     end
 
-    it "should construct the distro path based on the chef server version and platform" do
+    it "constructs the distro path based on chef server version and platform" do
       @knife.send(:construct_distro, "rhel").should eq("chef10/rhel")
       @knife.config[:bootstrap_version] = "11"
       @knife.send(:construct_distro, "rhel").should eq("chef11/rhel")
     end
 
-    it "should map the distro template based on a tuple of (platform, platform_version)" do
+    it "maps the distro template based on a platform/platform_version tuple" do
       {
         "el" => "rhel",
         "redhat" => "rhel",
@@ -85,20 +87,20 @@ describe Chef::Knife::ServerBootstrapStandalone do
       @knife.config[:ssh_password] = "nevereverguess"
       @knife.config[:ssh_port] = "2222"
       @knife.config[:identity_file] = "~/.ssh/mykey_dsa"
-      @knife.config[:security_groups] = %w{x y z}
-      @knife.config[:tags] = %w{tag1=val1 tag2=val2}
+      @knife.config[:security_groups] = %w[x y z]
+      @knife.config[:tags] = %w[tag1=val1 tag2=val2]
       @knife.config[:distro] = "distro-praha"
       @knife.config[:ebs_size] = "42"
       @knife.config[:webui_password] = "daweb"
       @knife.config[:amqp_password] = "queueitup"
 
-      ENV['_SPEC_WEBUI_PASSWORD'] = ENV['WEBUI_PASSWORD']
-      ENV['_SPEC_AMQP_PASSWORD'] = ENV['AMQP_PASSWORD']
+      ENV["_SPEC_WEBUI_PASSWORD"] = ENV["WEBUI_PASSWORD"]
+      ENV["_SPEC_AMQP_PASSWORD"] = ENV["AMQP_PASSWORD"]
     end
 
     after do
-      ENV['WEBUI_PASSWORD'] = ENV.delete('_SPEC_WEBUI_PASSWORD')
-      ENV['AMQP_PASSWORD'] = ENV.delete('_SPEC_AMQP_PASSWORD')
+      ENV["WEBUI_PASSWORD"] = ENV.delete("_SPEC_WEBUI_PASSWORD")
+      ENV["AMQP_PASSWORD"] = ENV.delete("_SPEC_AMQP_PASSWORD")
     end
 
     let(:bootstrap) { @knife.standalone_bootstrap }
@@ -163,33 +165,35 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
     it "configs the bootstrap's ENV with the webui password" do
       bootstrap
-      ENV['WEBUI_PASSWORD'].should eq("daweb")
+
+      ENV["WEBUI_PASSWORD"].should eq("daweb")
     end
 
     it "configs the bootstrap's ENV with the amqp password" do
       bootstrap
-      ENV['AMQP_PASSWORD'].should eq("queueitup")
+
+      ENV["AMQP_PASSWORD"].should eq("queueitup")
     end
 
     it "configs the bootstrap's name_args with the host" do
-      bootstrap.name_args.should eq([ "172.0.10.21" ])
+      bootstrap.name_args.should eq(%w[172.0.10.21])
     end
 
     it "configs the bootstrap's use_sudo to true if ssh-user is not root" do
-      bootstrap.config[:use_sudo].should be_true
+      bootstrap.config[:use_sudo].should be_truthy
     end
 
     it "configs the bootstrap's use_sudo to false if ssh-user is root" do
       @knife.config[:ssh_user] = "root"
 
-      bootstrap.config[:use_sudo].should_not be_true
+      bootstrap.config[:use_sudo].should_not be_truthy
     end
 
     describe "#bootstrap_auto?" do
-      it "should always be true if it was set via --platform, even if the distro changes" do
+      it "should be true if set via --platform, even if the distro changes" do
         @knife.config[:platform] = "auto"
         bootstrap.config[:distro].should_not eq("auto")
-        @knife.send(:bootstrap_auto?).should be_true
+        @knife.send(:bootstrap_auto?).should be_truthy
       end
     end
 
@@ -220,7 +224,12 @@ describe Chef::Knife::ServerBootstrapStandalone do
     end
 
     let(:bootstrap) do
-      double(:run => true, :config => Hash.new, :ui= => true, :name_args= => true)
+      double(
+        :run => true,
+        :config => Hash.new,
+        :ui= => true,
+        :name_args= => true
+      )
     end
 
     let(:ssh)         { double(:exec! => true) }
@@ -268,7 +277,7 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
     it "installs a new validation.pem key from the omnibus server" do
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem", {:omnibus => true})
+        with(ssh, "/etc/chef/validation.pem", :omnibus => true)
       credentials.should_receive(:install_validation_key)
 
       @knife.run
@@ -276,10 +285,13 @@ describe Chef::Knife::ServerBootstrapStandalone do
 
     context "when an ssh password is missing" do
       it "creates an SSH connection without a password" do
-        Knife::Server::SSH.should_receive(:new).with({
-          :host => "192.168.0.1", :port => "2345",
-          :user => "root", :password => nil, :keys => []
-        })
+        Knife::Server::SSH.should_receive(:new).with(
+          :host => "192.168.0.1",
+          :port => "2345",
+          :user => "root",
+          :password => nil,
+          :keys => []
+        )
 
         @knife.run
       end
@@ -291,10 +303,13 @@ describe Chef::Knife::ServerBootstrapStandalone do
       end
 
       it "creates an SSH connection with a password" do
-        Knife::Server::SSH.should_receive(:new).with({
-          :host => "192.168.0.1", :port => "2345",
-          :user => "root", :password => "snoopy", :keys => []
-        })
+        Knife::Server::SSH.should_receive(:new).with(
+          :host => "192.168.0.1",
+          :port => "2345",
+          :user => "root",
+          :password => "snoopy",
+          :keys => []
+        )
 
         @knife.run
       end
@@ -306,10 +321,13 @@ describe Chef::Knife::ServerBootstrapStandalone do
       end
 
       it "creates an SSH connection with an identity file" do
-        Knife::Server::SSH.should_receive(:new).with({
-          :host => "192.168.0.1", :port => "2345",
-          :user => "root", :password => nil, :keys => ["poop.pem"]
-        })
+        Knife::Server::SSH.should_receive(:new).with(
+          :host => "192.168.0.1",
+          :port => "2345",
+          :user => "root",
+          :password => nil,
+          :keys => ["poop.pem"]
+        )
 
         @knife.run
       end

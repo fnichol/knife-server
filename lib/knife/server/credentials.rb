@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -16,10 +17,11 @@
 # limitations under the License.
 #
 
-require 'fileutils'
+require "fileutils"
 
 module Knife
   module Server
+    # Creates credentials for a Chef server.
     class Credentials
       def initialize(ssh, validation_key_path, options = {})
         @ssh = ssh
@@ -28,9 +30,11 @@ module Knife
       end
 
       def install_validation_key(suffix = Time.now.to_i)
-        if File.exists?(@validation_key_path)
-          FileUtils.cp(@validation_key_path,
-                       backup_file_path(@validation_key_path, suffix))
+        if File.exist?(@validation_key_path)
+          FileUtils.cp(
+            @validation_key_path,
+            backup_file_path(@validation_key_path, suffix)
+          )
         end
 
         chef10_key = "/etc/chef/validation.pem"
@@ -42,38 +46,17 @@ module Knife
       end
 
       def create_root_client
-        chef10_cmd = [
-          "knife configure",
-          "--initial",
-          "--server-url http://127.0.0.1:4000",
-          "--user root",
-          '--repository ""',
-          "--defaults --yes"
-        ].join(" ")
-
-        omnibus_cmd = [
-          "echo '#{ENV['WEBUI_PASSWORD']}' |",
-          "knife configure",
-          "--initial",
-          "--server-url http://127.0.0.1:8000",
-          "--user root",
-          '--repository ""',
-          "--admin-client-name chef-webui",
-          "--admin-client-key /etc/chef-server/chef-webui.pem",
-          "--validation-client-name chef-validator",
-          "--validation-key /etc/chef-server/chef-validator.pem",
-          "--defaults --yes"
-        ].join(" ")
-
-        @ssh.exec!(omnibus? ? omnibus_cmd : chef10_cmd)
+        @ssh.exec!(omnibus? ? client_omnibus_cmd : client_chef10_cmd)
       end
 
       def install_client_key(user, client_key_path, suffix = Time.now.to_i)
         create_user_client(user)
 
-        if File.exists?(client_key_path)
-          FileUtils.cp(client_key_path,
-                       backup_file_path(client_key_path, suffix))
+        if File.exist?(client_key_path)
+          FileUtils.cp(
+            client_key_path,
+            backup_file_path(client_key_path, suffix)
+          )
         end
 
         File.open(client_key_path, "wb") do |f|
@@ -86,7 +69,7 @@ module Knife
       private
 
       def omnibus?
-        @omnibus
+        @omnibus ? true : false
       end
 
       def backup_file_path(file_path, suffix)
@@ -109,10 +92,37 @@ module Knife
           "--admin",
           "--file /tmp/chef-client-#{user}.pem",
           "--disable-editing",
-          "--password #{ENV['WEBUI_PASSWORD']}"
+          "--password #{ENV["WEBUI_PASSWORD"]}"
         ].join(" ")
 
         @ssh.exec!(omnibus? ? omnibus_cmd : chef10_cmd)
+      end
+
+      def client_chef10_cmd
+        [
+          "knife configure",
+          "--initial",
+          "--server-url http://127.0.0.1:4000",
+          "--user root",
+          '--repository ""',
+          "--defaults --yes"
+        ].join(" ")
+      end
+
+      def client_omnibus_cmd
+        [
+          "echo '#{ENV["WEBUI_PASSWORD"]}' |",
+          "knife configure",
+          "--initial",
+          "--server-url http://127.0.0.1:8000",
+          "--user root",
+          '--repository ""',
+          "--admin-client-name chef-webui",
+          "--admin-client-key /etc/chef-server/chef-webui.pem",
+          "--validation-client-name chef-validator",
+          "--validation-key /etc/chef-server/chef-validator.pem",
+          "--defaults --yes"
+        ].join(" ")
       end
     end
   end

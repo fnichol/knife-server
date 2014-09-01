@@ -16,10 +16,10 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_bootstrap_ec2'
-require 'chef/knife/ssh'
-require 'fakefs/spec_helpers'
-require 'net/ssh'
+require "chef/knife/server_bootstrap_ec2"
+require "chef/knife/ssh"
+require "fakefs/spec_helpers"
+require "net/ssh"
 Chef::Knife::ServerBootstrapEc2.load_deps
 
 describe Chef::Knife::ServerBootstrapEc2 do
@@ -45,20 +45,20 @@ describe Chef::Knife::ServerBootstrapEc2 do
       @knife.config[:ssh_user] = "jdoe"
       @knife.config[:ssh_port] = "2222"
       @knife.config[:identity_file] = "~/.ssh/mykey_dsa"
-      @knife.config[:security_groups] = %w{x y z}
-      @knife.config[:tags] = %w{tag1=val1 tag2=val2}
+      @knife.config[:security_groups] = %w[x y z]
+      @knife.config[:tags] = %w[tag1=val1 tag2=val2]
       @knife.config[:distro] = "distro-praha"
       @knife.config[:ebs_size] = "42"
       @knife.config[:webui_password] = "daweb"
       @knife.config[:amqp_password] = "queueitup"
 
-      ENV['_SPEC_WEBUI_PASSWORD'] = ENV['WEBUI_PASSWORD']
-      ENV['_SPEC_AMQP_PASSWORD'] = ENV['AMQP_PASSWORD']
+      ENV["_SPEC_WEBUI_PASSWORD"] = ENV["WEBUI_PASSWORD"]
+      ENV["_SPEC_AMQP_PASSWORD"] = ENV["AMQP_PASSWORD"]
     end
 
     after do
-      ENV['WEBUI_PASSWORD'] = ENV.delete('_SPEC_WEBUI_PASSWORD')
-      ENV['AMQP_PASSWORD'] = ENV.delete('_SPEC_AMQP_PASSWORD')
+      ENV["WEBUI_PASSWORD"] = ENV.delete("_SPEC_WEBUI_PASSWORD")
+      ENV["AMQP_PASSWORD"] = ENV.delete("_SPEC_AMQP_PASSWORD")
     end
 
     let(:bootstrap) { @knife.ec2_bootstrap }
@@ -84,7 +84,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
     end
 
     it "configs the bootstrap's security_groups" do
-      bootstrap.config[:security_groups].should eq(["x", "y", "z"])
+      bootstrap.config[:security_groups].should eq(%w[x y z])
     end
 
     it "configs the bootstrap's ebs_size" do
@@ -117,7 +117,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
       bootstrap.config[:distro].should eq("chef11/freebsd")
     end
 
-    it "configs the bootstrap's distro based on bootstrap_version and platform" do
+    it "configs the distro based on bootstrap_version and platform" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
       @knife.config[:bootstrap_version] = "10"
@@ -127,12 +127,12 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
     it "configs the bootstrap's ENV with the webui password" do
       bootstrap
-      ENV['WEBUI_PASSWORD'].should eq("daweb")
+      ENV["WEBUI_PASSWORD"].should eq("daweb")
     end
 
     it "configs the bootstrap's ENV with the amqp password" do
       bootstrap
-      ENV['AMQP_PASSWORD'].should eq("queueitup")
+      ENV["AMQP_PASSWORD"].should eq("queueitup")
     end
   end
 
@@ -156,12 +156,12 @@ describe Chef::Knife::ServerBootstrapEc2 do
     end
 
     it "constructs a connection" do
-      Fog::Compute.should_receive(:new).with({
-        :provider => 'AWS',
-        :aws_access_key_id => 'key',
-        :aws_secret_access_key => 'secret',
-        :region => 'hell-south-666'
-      })
+      Fog::Compute.should_receive(:new).with(
+        :provider => "AWS",
+        :aws_access_key_id => "key",
+        :aws_secret_access_key => "secret",
+        :region => "hell-south-666"
+      )
 
       @knife.ec2_connection
     end
@@ -169,7 +169,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
   describe "#server_dns_name" do
     before do
-      @knife.config[:chef_node_name] = 'shavemy.yak'
+      @knife.config[:chef_node_name] = "shavemy.yak"
       @knife.stub(:ec2_connection) { connection }
     end
 
@@ -179,12 +179,15 @@ describe Chef::Knife::ServerBootstrapEc2 do
       end
 
       let(:server) do
-        double(:dns_name => 'blahblah.aws.compute.com', :state => "running",
-          :tags => {'Name' => 'shavemy.yak', 'Role' => 'chef_server'})
+        double(
+          :dns_name => "blahblah.aws.compute.com",
+          :state => "running",
+          :tags => { "Name" => "shavemy.yak", "Role" => "chef_server" }
+        )
       end
 
       it "returns the provisioned dns name" do
-        @knife.server_dns_name.should eq('blahblah.aws.compute.com')
+        @knife.server_dns_name.should eq("blahblah.aws.compute.com")
       end
 
       it "ignores terminated instances" do
@@ -240,7 +243,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
     let(:credentials)     { double.as_null_object }
 
     it "exits if node_name option is missing" do
-      def @knife.exit(code) ; end
+      def @knife.exit(_); end
       @knife.config.delete(:chef_node_name)
 
       @knife.should_receive(:exit)
@@ -251,7 +254,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
       Knife::Server::Ec2SecurityGroup.should_receive(:new).
         with(connection, @knife.ui)
       security_group.should_receive(:configure_chef_server_group).
-        with('mygroup', :description => 'mygroup group')
+        with("mygroup", :description => "mygroup group")
 
       @knife.run
     end
@@ -263,10 +266,12 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
     it "installs a new validation.pem key from the chef 10 server" do
       @knife.config[:bootstrap_version] = "10"
-      Knife::Server::SSH.should_receive(:new).with({
-        :host => "grapes.wrath", :user => "root",
-        :port => "2345", :keys => ["~/.ssh/mykey_dsa"]
-      })
+      Knife::Server::SSH.should_receive(:new).with(
+        :host => "grapes.wrath",
+        :user => "root",
+        :port => "2345",
+        :keys => ["~/.ssh/mykey_dsa"]
+      )
       Knife::Server::Credentials.should_receive(:new).
         with(ssh, "/etc/chef/validation.pem", {})
       credentials.should_receive(:install_validation_key)
@@ -275,12 +280,14 @@ describe Chef::Knife::ServerBootstrapEc2 do
     end
 
     it "installs a new validation.pem key from the omnibus server" do
-      Knife::Server::SSH.should_receive(:new).with({
-        :host => "grapes.wrath", :user => "root",
-        :port => "2345", :keys => ["~/.ssh/mykey_dsa"]
-      })
+      Knife::Server::SSH.should_receive(:new).with(
+        :host => "grapes.wrath",
+        :user => "root",
+        :port => "2345",
+        :keys => ["~/.ssh/mykey_dsa"]
+      )
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem", {:omnibus => true})
+        with(ssh, "/etc/chef/validation.pem", :omnibus => true)
       credentials.should_receive(:install_validation_key)
 
       @knife.run

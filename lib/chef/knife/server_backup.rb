@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -16,16 +17,17 @@
 # limitations under the License.
 #
 
-require 'chef/knife'
-require 'chef/node'
+require "chef/knife"
+require "chef/node"
 
 class Chef
   class Knife
+    # Backs up a Chef server component.
     class ServerBackup < Knife
 
       deps do
-        require 'fileutils'
-        require 'uri'
+        require "fileutils"
+        require "uri"
       end
 
       banner "knife server backup COMPONENT[ COMPONENT ...] (options)"
@@ -60,10 +62,22 @@ class Chef
       private
 
       COMPONENTS = {
-        "nodes" => { :singular => "node", :klass => Chef::Node },
-        "roles" => { :singular => "role", :klass => Chef::Role },
-        "environments" => { :singular => "environment", :klass => Chef::Environment },
-        "data_bags" => { :singular => "data_bag", :klass => Chef::DataBag },
+        "nodes" => {
+          :singular => "node",
+          :klass => Chef::Node
+        },
+        "roles" => {
+          :singular => "role",
+          :klass => Chef::Role
+        },
+        "environments" => {
+          :singular => "environment",
+          :klass => Chef::Environment
+        },
+        "data_bags" => {
+          :singular => "data_bag",
+          :klass => Chef::DataBag
+        }
       }
 
       def validate!
@@ -80,7 +94,7 @@ class Chef
         ui.msg "Creating #{c[:singular]} backups in #{dir_path}"
         FileUtils.mkdir_p(dir_path)
 
-        Array(c[:klass].list).each do |name, url|
+        Array(c[:klass].list).each do |name, _url|
           next if component == "environments" && name == "_default"
 
           case component
@@ -108,7 +122,7 @@ class Chef
         item_path = ::File.join(dir_path, name)
         FileUtils.mkdir_p(item_path)
 
-        Array(c[:klass].load(name)).each do |item_name, url|
+        Array(c[:klass].load(name)).each do |item_name, _url|
           obj = Chef::DataBagItem.load(name, item_name)
           ui.msg "Backing up #{c[:singular]}[#{name}][#{item_name}]"
           ::File.open(::File.join(item_path, "#{item_name}.json"), "wb") do |f|

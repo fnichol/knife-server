@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -16,13 +17,15 @@
 # limitations under the License.
 #
 
-require 'net/ssh'
+require "net/ssh"
 
 module Knife
   module Server
+    # Communicates with an SSH node.
     class SSH
       DEFAULT_OPTIONS = { :user => "root", :port => "22" }.freeze
-      USER_SWITCH_COMMAND = %[sudo USER=root HOME="$(getent passwd root | cut -d : -f 6)"]
+      USER_SWITCH_COMMAND =
+        %{sudo USER=root HOME="$(getent passwd root | cut -d : -f 6)"}.freeze
 
       def initialize(params)
         options = DEFAULT_OPTIONS.merge(params)
@@ -36,10 +39,7 @@ module Knife
         if @user == "root"
           full_cmd = cmd
         else
-          full_cmd = [
-            USER_SWITCH_COMMAND,
-            %[bash -c '#{cmd}']
-          ].join(" ")
+          full_cmd = [USER_SWITCH_COMMAND, %{bash -c '#{cmd}'}].join(" ")
         end
 
         result = ""
@@ -71,26 +71,30 @@ module Knife
         fi
         EOF
 
+        exec_ssh(wrapper, content)
+      end
+
+      def exec_ssh(wrapper, content) # rubocop:disable Metrics/MethodLength
         result = ""
         exit_status = nil
 
         Net::SSH.start(@host, @user, @options) do |ssh|
           ssh.open_channel do |ch|
-            ch.on_open_failed do |ch, code, desc|
+            ch.on_open_failed do |_, _, desc|
               raise "Connection Error to #{ip}: #{desc}"
             end
 
-            ch.exec(wrapper) do |channel, type, data|
-              # spit out the shell script and close stdin so sh can do its magic.
+            ch.exec(wrapper) do |channel, _, _|
+              # spit out the shell script and close stdin so sh can do its magic
               channel.send_data(content)
               channel.eof!
 
-              # then we just wait for sweet, sweet output.
-              channel.on_data do |ch2, data|
+              # then we just wait for sweet, sweet output
+              channel.on_data do |_, data|
                 result << data
               end
 
-              channel.on_request("exit-status") do |ch2, data|
+              channel.on_request("exit-status") do |_, data|
                 exit_status = data.read_long
               end
             end
@@ -101,7 +105,7 @@ module Knife
           ssh.loop
         end
 
-        return result, exit_status
+        [result, exit_status]
       end
     end
   end

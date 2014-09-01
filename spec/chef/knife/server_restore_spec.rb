@@ -16,9 +16,9 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_restore'
-require 'fakefs/spec_helpers'
-require 'fileutils'
+require "chef/knife/server_restore"
+require "fakefs/spec_helpers"
+require "fileutils"
 Chef::Knife::ServerRestore.load_deps
 
 describe Chef::Knife::ServerRestore do
@@ -47,20 +47,20 @@ describe Chef::Knife::ServerRestore do
     end
 
     it "exists if component type is invalid" do
-      @knife.name_args = %w{nodes hovercraft}
+      @knife.name_args = %w[nodes hovercraft]
 
-      lambda { @knife.run }.should raise_error SystemExit
+      proc { @knife.run }.should raise_error(SystemExit)
     end
 
     it "exists if backup_dir is missing" do
       @knife.config.delete(:backup_dir)
 
-      lambda { @knife.run }.should raise_error SystemExit
+      proc { @knife.run }.should raise_error(SystemExit)
     end
 
     context "for nodes" do
       before do
-        @knife.name_args = %w{nodes}
+        @knife.name_args = %w[nodes]
 
         stub_json_node!("mynode")
       end
@@ -80,7 +80,7 @@ describe Chef::Knife::ServerRestore do
 
     context "for roles" do
       before do
-        @knife.name_args = %w{roles}
+        @knife.name_args = %w[roles]
 
         stub_json_role!("myrole")
       end
@@ -100,7 +100,7 @@ describe Chef::Knife::ServerRestore do
 
     context "for environments" do
       before do
-        @knife.name_args = %w{environments}
+        @knife.name_args = %w[environments]
 
         stub_json_env!("myenv")
       end
@@ -120,7 +120,7 @@ describe Chef::Knife::ServerRestore do
 
     context "for data_bags" do
       before do
-        @knife.name_args = %w{data_bags}
+        @knife.name_args = %w[data_bags]
 
         stub_json_data_bag_item!("mybag", "myitem")
       end
@@ -132,8 +132,7 @@ describe Chef::Knife::ServerRestore do
       end
 
       it "creates the data bag" do
-        rest_client.should_receive(:post_rest).
-          with("data", { "name" => "mybag" })
+        rest_client.should_receive(:post_rest).with("data", "name" => "mybag")
 
         @knife.run
       end
@@ -141,7 +140,7 @@ describe Chef::Knife::ServerRestore do
       it "only creates the data bag once for multiple items" do
         stub_json_data_bag_item!("mybag", "anotheritem")
         rest_client.should_receive(:post_rest).
-          with("data", { "name" => "mybag" }).once
+          with("data", "name" => "mybag").once
 
         @knife.run
       end
@@ -180,8 +179,7 @@ describe Chef::Knife::ServerRestore do
       end
 
       it "creates data bags" do
-        rest_client.should_receive(:post_rest).
-          with("data", { "name" => "bagey" })
+        rest_client.should_receive(:post_rest).with("data", "name" => "bagey")
 
         @knife.run
       end

@@ -16,9 +16,9 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_backup'
-require 'fakefs/spec_helpers'
-require 'timecop'
+require "chef/knife/server_backup"
+require "fakefs/spec_helpers"
+require "timecop"
 
 describe Chef::Knife::ServerBackup do
   include FakeFS::SpecHelpers
@@ -73,22 +73,22 @@ describe Chef::Knife::ServerBackup do
       Chef::DataBag.stub(:list) { data_bag_list }
       Chef::DataBag.stub(:load).with("mybag") { data_bag_item_list }
       Chef::DataBagItem.stub(:load).
-        with("mybag", "myitem") { stub_bag_item("mybag", "myitem")}
+        with("mybag", "myitem") { stub_bag_item("mybag", "myitem") }
     end
 
     it "exits if component type is invalid" do
-      @knife.name_args = %w{nodes toasterovens}
+      @knife.name_args = %w[nodes toasterovens]
 
-      lambda { @knife.run }.should raise_error SystemExit
+      -> { @knife.run }.should raise_error SystemExit
     end
 
     context "for nodes" do
-      before { @knife.name_args = %w{nodes} }
+      before { @knife.name_args = %w[nodes] }
 
       it "creates the backup nodes dir" do
         @knife.run
 
-        File.directory?(["/baks", "nodes"].join("/")).should be_true
+        File.directory?(["/baks", "nodes"].join("/")).should be_truthy
       end
 
       it "sends a message to the ui" do
@@ -107,12 +107,12 @@ describe Chef::Knife::ServerBackup do
     end
 
     context "for roles" do
-      before { @knife.name_args = %w{roles} }
+      before { @knife.name_args = %w[roles] }
 
       it "creates the backup roles dir" do
         @knife.run
 
-        File.directory?(["/baks", "roles"].join("/")).should be_true
+        File.directory?(["/baks", "roles"].join("/")).should be_truthy
       end
 
       it "sends a message to the ui" do
@@ -131,12 +131,12 @@ describe Chef::Knife::ServerBackup do
     end
 
     context "for environments" do
-      before { @knife.name_args = %w{environments} }
+      before { @knife.name_args = %w[environments] }
 
       it "creates the backup environments dir" do
         @knife.run
 
-        File.directory?(["/baks", "environments"].join("/")).should be_true
+        File.directory?(["/baks", "environments"].join("/")).should be_truthy
       end
 
       it "sends a message to the ui" do
@@ -147,7 +147,9 @@ describe Chef::Knife::ServerBackup do
 
       it "writes out each environment to a json file" do
         @knife.run
-        json_str = File.open("/baks/environments/myenv.json", "rb") { |f| f.read }
+        json_str = File.open("/baks/environments/myenv.json", "rb") do |f|
+          f.read
+        end
         json = JSON.parse(json_str, :create_additions => false)
 
         json["name"].should eq("myenv")
@@ -158,17 +160,17 @@ describe Chef::Knife::ServerBackup do
         Chef::Environment.stub(:load).with("_default") { stub_env("_default") }
         @knife.run
 
-        File.exists?("/baks/environments/_default.json").should_not be_true
+        File.exist?("/baks/environments/_default.json").should_not be_truthy
       end
     end
 
     context "for data_bags" do
-      before { @knife.name_args = %w{data_bags} }
+      before { @knife.name_args = %w[data_bags] }
 
       it "creates the backup data_bags dir" do
         @knife.run
 
-        File.directory?(["/baks", "data_bags"].join("/")).should be_true
+        File.directory?(["/baks", "data_bags"].join("/")).should be_truthy
       end
 
       it "sends messages to the ui" do
@@ -179,7 +181,9 @@ describe Chef::Knife::ServerBackup do
 
       it "writes out each data bag item to a json file" do
         @knife.run
-        json_str = File.open("/baks/data_bags/mybag/myitem.json", "rb") { |f| f.read }
+        json_str = File.open("/baks/data_bags/mybag/myitem.json", "rb") do |f|
+          f.read
+        end
         json = JSON.parse(json_str, :create_additions => false)
 
         json["name"].should eq("data_bag_item_mybag_myitem")
@@ -190,25 +194,25 @@ describe Chef::Knife::ServerBackup do
       it "writes a node file" do
         @knife.run
 
-        File.exists?("/baks/nodes/mynode.json").should be_true
+        File.exist?("/baks/nodes/mynode.json").should be_truthy
       end
 
       it "writes a role file" do
         @knife.run
 
-        File.exists?("/baks/roles/myrole.json").should be_true
+        File.exist?("/baks/roles/myrole.json").should be_truthy
       end
 
       it "writes an environment file" do
         @knife.run
 
-        File.exists?("/baks/environments/myenv.json").should be_true
+        File.exist?("/baks/environments/myenv.json").should be_truthy
       end
 
       it "writes a data bag item file" do
         @knife.run
 
-        File.exists?("/baks/data_bags/mybag/myitem.json").should be_true
+        File.exist?("/baks/data_bags/mybag/myitem.json").should be_truthy
       end
     end
   end

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-require 'knife/server/ssh'
+require "knife/server/ssh"
 
 describe Knife::Server::SSH do
   let(:ssh_options) do
@@ -36,7 +36,7 @@ describe Knife::Server::SSH do
 
   it "passes ssh options to ssh sessions" do
     Net::SSH.should_receive(:start).with("wadup.example.com", "bob",
-      { :keys => "/tmp/whoomp.key", :port => "2222" })
+      :keys => "/tmp/whoomp.key", :port => "2222")
 
     subject.exec! "wat"
   end
@@ -65,9 +65,10 @@ describe Knife::Server::SSH do
   end
 
   it "adds sudo to the command if user is not root" do
-    ssh_connection.should_receive(:exec!).
-      with([%{sudo USER=root HOME="$(getent passwd root | cut -d : -f 6)"},
-           %{bash -c 'zappa'}].join(" "))
+    ssh_connection.should_receive(:exec!).with([
+      %{sudo USER=root HOME="$(getent passwd root | cut -d : -f 6)"},
+      %{bash -c 'zappa'}
+    ].join(" "))
 
     Knife::Server::SSH.new(ssh_options).exec!("zappa")
   end

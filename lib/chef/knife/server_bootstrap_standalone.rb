@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -16,10 +17,12 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_bootstrap_base'
+require "chef/knife/server_bootstrap_base"
 
 class Chef
   class Knife
+    # Provisions a standalone server that is reachable on the network and
+    # sets up an Open Source Chef Server.
     class ServerBootstrapStandalone < Knife
 
       banner "knife server bootstrap standalone (options)"
@@ -27,14 +30,14 @@ class Chef
       include Knife::ServerBootstrapBase
 
       deps do
-        require 'knife/server/ssh'
-        require 'knife/server/credentials'
-        require 'chef/knife/bootstrap'
+        require "knife/server/ssh"
+        require "knife/server/credentials"
+        require "chef/knife/bootstrap"
         Chef::Knife::Bootstrap.load_deps
 
-        current_options = self.options
-        self.options = Chef::Knife::Bootstrap.options.dup
-        self.options.merge!(current_options)
+        current_options = options
+        options = Chef::Knife::Bootstrap.options.dup
+        options.merge!(current_options)
       end
 
       option :host,
@@ -52,17 +55,15 @@ class Chef
       end
 
       def standalone_bootstrap
-        ENV['WEBUI_PASSWORD'] = config_val(:webui_password)
-        ENV['AMQP_PASSWORD'] = config_val(:amqp_password)
-        ENV['NO_TEST'] = "1" if config[:no_test]
+        setup_environment
         bootstrap = Chef::Knife::Bootstrap.new
-        bootstrap.name_args = [ config[:host] ]
+        bootstrap.name_args = [config[:host]]
         Chef::Knife::Bootstrap.options.keys.each do |attr|
           bootstrap.config[attr] = config_val(attr)
         end
-        bootstrap.ui = self.ui
+        bootstrap.ui = ui
         bootstrap.config[:distro] = bootstrap_distro
-        bootstrap.config[:use_sudo] = true unless config_val(:ssh_user) == "root"
+        bootstrap.config[:use_sudo] = true if config_val(:ssh_user) != "root"
         bootstrap
       end
 
@@ -79,11 +80,17 @@ class Chef
         end
       end
 
+      def setup_environment
+        ENV["WEBUI_PASSWORD"] = config_val(:webui_password)
+        ENV["AMQP_PASSWORD"] = config_val(:amqp_password)
+        ENV["NO_TEST"] = "1" if config[:no_test]
+      end
+
       def check_ssh_connection
         ssh_connection.exec! "hostname -f"
       rescue Net::SSH::AuthenticationFailed
-        ui.warn("Failed to authenticate #{config_val(:ssh_user)} - " +
-                "trying password auth")
+        ui.warn("Failed to authenticate #{config_val(:ssh_user)} - " \
+          "trying password auth")
         config[:ssh_password] = ui.ask(
           "Enter password for #{config_val(:ssh_user)}@#{config_val(:host)}: "
         ) { |q| q.echo = false }

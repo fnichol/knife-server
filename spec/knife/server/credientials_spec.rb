@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 
-require 'knife/server/credentials'
-require 'fakefs/spec_helpers'
+require "knife/server/credentials"
+require "fakefs/spec_helpers"
 
 describe Knife::Server::Credentials do
   include FakeFS::SpecHelpers
@@ -40,11 +40,11 @@ describe Knife::Server::Credentials do
     File.new(validation_key_path, "wb")  { |f| f.write("thekey") }
     File.new(client_key_path, "wb")  { |f| f.write("clientkey") }
 
-    ENV['_SPEC_WEBUI_PASSWORD'] = ENV['WEBUI_PASSWORD']
+    ENV["_SPEC_WEBUI_PASSWORD"] = ENV["WEBUI_PASSWORD"]
   end
 
   after do
-    ENV['WEBUI_PASSWORD'] = ENV.delete('_SPEC_WEBUI_PASSWORD')
+    ENV["WEBUI_PASSWORD"] = ENV.delete("_SPEC_WEBUI_PASSWORD")
   end
 
   describe "#install_validation_key" do
@@ -66,7 +66,7 @@ describe Knife::Server::Credentials do
       FileUtils.rm_f(validation_key_path)
       subject.install_validation_key("old")
 
-      File.exists?("/tmp/validation.old.pem").should_not be_true
+      File.exist?("/tmp/validation.old.pem").should_not be_truthy
     end
 
     it "copies the key back from the server into validation key file" do
@@ -87,23 +87,23 @@ describe Knife::Server::Credentials do
   describe "#create_root_client" do
     it "creates an initial client key on the server" do
       ssh.should_receive(:exec!).with([
-        'knife configure --initial --server-url http://127.0.0.1:4000',
-        '--user root --repository "" --defaults --yes'
+        "knife configure --initial --server-url http://127.0.0.1:4000",
+        %{--user root --repository "" --defaults --yes}
       ].join(" "))
 
       subject.create_root_client
     end
 
     it "creates an initial user on the omnibus server" do
-      ENV['WEBUI_PASSWORD'] = 'doowah'
+      ENV["WEBUI_PASSWORD"] = "doowah"
       ssh.should_receive(:exec!).with([
-        "echo 'doowah' |",
-        'knife configure --initial --server-url http://127.0.0.1:8000',
-        '--user root --repository "" --admin-client-name chef-webui',
-        '--admin-client-key /etc/chef-server/chef-webui.pem',
-        '--validation-client-name chef-validator',
-        '--validation-key /etc/chef-server/chef-validator.pem',
-        '--defaults --yes'
+        %{echo 'doowah' |},
+        "knife configure --initial --server-url http://127.0.0.1:8000",
+        %{--user root --repository "" --admin-client-name chef-webui},
+        "--admin-client-key /etc/chef-server/chef-webui.pem",
+        "--validation-client-name chef-validator",
+        "--validation-key /etc/chef-server/chef-validator.pem",
+        "--defaults --yes"
       ].join(" "))
 
       omnibus_subject.create_root_client
@@ -119,7 +119,7 @@ describe Knife::Server::Credentials do
     it "creates a user client key on the server" do
       ssh.should_receive(:exec!).with([
         "knife client create bob --admin",
-        "--file /tmp/chef-client-bob.pem --disable-editing",
+        "--file /tmp/chef-client-bob.pem --disable-editing"
       ].join(" "))
 
       subject.install_client_key("bob", client_key_path)
@@ -137,7 +137,7 @@ describe Knife::Server::Credentials do
       FileUtils.rm_f(client_key_path)
       subject.install_client_key("bob", client_key_path, "old")
 
-      File.exists?("/tmp/client.old.pem").should_not be_true
+      File.exist?("/tmp/client.old.pem").should_not be_truthy
     end
 
     it "copies the key back from the server into client key file" do

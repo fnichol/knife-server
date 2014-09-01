@@ -16,10 +16,10 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_bootstrap_linode'
-require 'chef/knife/ssh'
-require 'fakefs/spec_helpers'
-require 'net/ssh'
+require "chef/knife/server_bootstrap_linode"
+require "chef/knife/ssh"
+require "fakefs/spec_helpers"
+require "net/ssh"
 Chef::Knife::ServerBootstrapLinode.load_deps
 
 describe Chef::Knife::ServerBootstrapLinode do
@@ -50,13 +50,13 @@ describe Chef::Knife::ServerBootstrapLinode do
       @knife.config[:webui_password] = "daweb"
       @knife.config[:amqp_password] = "queueitup"
 
-      ENV['_SPEC_WEBUI_PASSWORD'] = ENV['WEBUI_PASSWORD']
-      ENV['_SPEC_AMQP_PASSWORD'] = ENV['AMQP_PASSWORD']
+      ENV["_SPEC_WEBUI_PASSWORD"] = ENV["WEBUI_PASSWORD"]
+      ENV["_SPEC_AMQP_PASSWORD"] = ENV["AMQP_PASSWORD"]
     end
 
     after do
-      ENV['WEBUI_PASSWORD'] = ENV.delete('_SPEC_WEBUI_PASSWORD')
-      ENV['AMQP_PASSWORD'] = ENV.delete('_SPEC_AMQP_PASSWORD')
+      ENV["WEBUI_PASSWORD"] = ENV.delete("_SPEC_WEBUI_PASSWORD")
+      ENV["AMQP_PASSWORD"] = ENV.delete("_SPEC_AMQP_PASSWORD")
     end
 
     let(:bootstrap) { @knife.linode_bootstrap }
@@ -98,7 +98,7 @@ describe Chef::Knife::ServerBootstrapLinode do
       bootstrap.config[:distro].should eq("chef11/freebsd")
     end
 
-    it "configs the bootstrap's distro based on bootstrap_version and platform" do
+    it "configs the distro based on bootstrap_version and platform" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
       @knife.config[:bootstrap_version] = "10"
@@ -108,12 +108,14 @@ describe Chef::Knife::ServerBootstrapLinode do
 
     it "configs the bootstrap's ENV with the webui password" do
       bootstrap
-      ENV['WEBUI_PASSWORD'].should eq("daweb")
+
+      ENV["WEBUI_PASSWORD"].should eq("daweb")
     end
 
     it "configs the bootstrap's ENV with the amqp password" do
       bootstrap
-      ENV['AMQP_PASSWORD'].should eq("queueitup")
+
+      ENV["AMQP_PASSWORD"].should eq("queueitup")
     end
   end
 
@@ -134,10 +136,10 @@ describe Chef::Knife::ServerBootstrapLinode do
     end
 
     it "constructs a connection" do
-      Fog::Compute.should_receive(:new).with({
-        :provider => 'Linode',
-        :linode_api_key => 'key'
-      })
+      Fog::Compute.should_receive(:new).with(
+        :provider => "Linode",
+        :linode_api_key => "key"
+      )
 
       @knife.linode_connection
     end
@@ -146,7 +148,7 @@ describe Chef::Knife::ServerBootstrapLinode do
   describe "#server_ip_address" do
 
     before do
-      @knife.config[:linode_node_name] = 'yak'
+      @knife.config[:linode_node_name] = "yak"
       @knife.stub(:linode_connection) { connection }
     end
 
@@ -157,11 +159,15 @@ describe Chef::Knife::ServerBootstrapLinode do
       end
 
       let(:server) do
-        double(:name => 'yak', :status => 1, :public_ip_address => '10.11.12.13')
+        double(
+          :name => "yak",
+          :status => 1,
+          :public_ip_address => "10.11.12.13"
+        )
       end
 
       it "returns the provisioned ip address" do
-        @knife.server_ip_address.should eq('10.11.12.13')
+        @knife.server_ip_address.should eq("10.11.12.13")
       end
 
       it "ignores terminated instances" do
@@ -217,13 +223,13 @@ describe Chef::Knife::ServerBootstrapLinode do
     it "exits if node_name option is missing" do
       @knife.config.delete(:chef_node_name)
 
-      lambda { @knife.run }.should raise_error(SystemExit)
+      proc { @knife.run }.should raise_error(SystemExit)
     end
 
     it "exits if platform is set to auto" do
       @knife.config[:platform] = "auto"
 
-      lambda { @knife.run }.should raise_error(SystemExit)
+      proc { @knife.run }.should raise_error(SystemExit)
     end
 
     it "bootstraps a linode server" do
@@ -234,10 +240,13 @@ describe Chef::Knife::ServerBootstrapLinode do
 
     it "installs a new validation.pem key from the chef 10 server" do
       @knife.config[:bootstrap_version] = "10"
-      Knife::Server::SSH.should_receive(:new).with({
-        :host => "11.11.11.13", :user => "root",
-        :port => "22", :keys => ["~/.ssh/mykey_dsa"], :password => "booboo"
-      })
+      Knife::Server::SSH.should_receive(:new).with(
+        :host => "11.11.11.13",
+        :user => "root",
+        :port => "22",
+        :keys => ["~/.ssh/mykey_dsa"],
+        :password => "booboo"
+      )
       Knife::Server::Credentials.should_receive(:new).
         with(ssh, "/etc/chef/validation.pem", {})
       credentials.should_receive(:install_validation_key)
@@ -246,12 +255,15 @@ describe Chef::Knife::ServerBootstrapLinode do
     end
 
     it "installs a new validation.pem key from the omnibus server" do
-      Knife::Server::SSH.should_receive(:new).with({
-        :host => "11.11.11.13", :user => "root",
-        :port => "22", :keys => ["~/.ssh/mykey_dsa"], :password => "booboo"
-      })
+      Knife::Server::SSH.should_receive(:new).with(
+        :host => "11.11.11.13",
+        :user => "root",
+        :port => "22",
+        :keys => ["~/.ssh/mykey_dsa"],
+        :password => "booboo"
+      )
       Knife::Server::Credentials.should_receive(:new).
-        with(ssh, "/etc/chef/validation.pem", {:omnibus => true})
+        with(ssh, "/etc/chef/validation.pem", :omnibus => true)
       credentials.should_receive(:install_validation_key)
 
       @knife.run

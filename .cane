@@ -1,0 +1,1 @@
+--abc-exclude Knife::Server::SSH#exec_ssh

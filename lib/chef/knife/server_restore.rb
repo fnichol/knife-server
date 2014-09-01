@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -16,14 +17,15 @@
 # limitations under the License.
 #
 
-require 'chef/knife'
+require "chef/knife"
 
 class Chef
   class Knife
+    # Restores Chef data primitives from JSON backups to a Chef Server.
     class ServerRestore < Knife
 
       deps do
-        require 'chef/json_compat'
+        require "chef/json_compat"
       end
 
       banner "knife server restore COMPONENT[ COMPONENT ...] (options)"
@@ -43,11 +45,23 @@ class Chef
       private
 
       COMPONENTS = {
-        "nodes" => { :singular => "node", :klass => Chef::Node },
-        "roles" => { :singular => "role", :klass => Chef::Role },
-        "environments" => { :singular => "environment", :klass => Chef::Environment },
-        "data_bags" => { :singular => "data_bag", :klass => Chef::DataBag },
-      }
+        "nodes" => {
+          :singular => "node",
+          :klass => Chef::Node
+        },
+        "roles" => {
+          :singular => "role",
+          :klass => Chef::Role
+        },
+        "environments" => {
+          :singular => "environment",
+          :klass => Chef::Environment
+        },
+        "data_bags" => {
+          :singular => "data_bag",
+          :klass => Chef::DataBag
+        }
+      }.freeze
 
       def validate!
         bad_names = name_args.reject { |c| COMPONENTS.keys.include?(c) }
@@ -77,7 +91,7 @@ class Chef
 
         if c[:klass] == Chef::DataBag
           create_data_bag(::File.basename(::File.dirname(json_file)))
-          msg = "Restoring #{c[:singular]}" +
+          msg = "Restoring #{c[:singular]}" \
             "[#{obj.data_bag}][#{obj.raw_data[:id]}]"
         else
           msg = "Restoring #{c[:singular]}[#{obj.name}]"
@@ -92,7 +106,7 @@ class Chef
 
         unless @created_data_bags.include?(name)
           ui.msg "Restoring data_bag[#{name}]"
-          rest.post_rest("data", { "name" => name })
+          rest.post_rest("data", "name" => name)
           @created_data_bags << name
         end
       end

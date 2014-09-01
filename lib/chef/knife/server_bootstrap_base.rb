@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -16,35 +17,39 @@
 # limitations under the License.
 #
 
-require 'chef/knife'
+require "chef/knife"
 
 class Chef
   class Knife
+    # Common behavior for server bootstrapping.
     module ServerBootstrapBase
 
-      def self.included(included_class)
+      def self.included(included_class) # rubocop:disable Metrics/MethodLength
         included_class.class_eval do
 
           deps do
-            require 'chef/knife/ssh'
-            require 'net/ssh'
+            require "chef/knife/ssh"
+            require "net/ssh"
           end
 
           option :platform,
             :short => "-P PLATFORM",
             :long => "--platform PLATFORM",
-            :description => "The platform type that will be bootstrapped (omnibus)",
+            :description => "The platform type that will be bootstrapped, "\
+              "default is 'omnibus'",
             :default => "omnibus"
 
           option :distro,
             :short => "-d DISTRO",
             :long => "--distro DISTRO",
-            :description => "Bootstrap a distro using a template; default is 'chef11/omnibus'"
+            :description => "Bootstrap a distro using a template, " \
+              "default is 'chef11/omnibus'"
 
           option :bootstrap_version,
             :long => "--bootstrap-version VERSION",
-            :description => "The version of Chef Server to install, default is latest release",
-            :proc => Proc.new { |v| Chef::Config[:knife][:bootstrap_version] = v },
+            :description => "The version of Chef Server to install, " \
+              "default is latest release",
+            :proc => proc { |v| Chef::Config[:knife][:bootstrap_version] = v },
             :default => nil
 
           option :prerelease,
@@ -53,13 +58,15 @@ class Chef
 
           option :webui_enable,
             :long => "--[no-]webui-enable",
-            :description => "Whether or not to enable the webui, default is false",
-            :proc => Proc.new { |v| Chef::Config[:knife][:webui_enable] = v },
+            :description => "Whether or not to enable the webui, " \
+              "default is false",
+            :proc => proc { |v| Chef::Config[:knife][:webui_enable] = v },
             :default => false
 
           option :webui_password,
             :long => "--webui-password SECRET",
-            :description => "Initial password for WebUI admin account, default is 'chefchef'",
+            :description => "Initial password for WebUI admin account, " \
+              "default is 'chefchef'",
             :default => "chefchef"
 
           option :amqp_password,
@@ -70,14 +77,16 @@ class Chef
           option :log_level,
             :short => "-l LEVEL",
             :long => "--log-level LEVEL",
-            :description  => "Set the log level (debug, info, warn, error, fatal)",
-            :proc => Proc.new { |v| Chef::Config[:knife][:log_level] = v.to_sym },
+            :description  => "Set the log level " \
+              "(debug, info, warn, error, fatal), default is error",
+            :proc => proc { |v| Chef::Config[:knife][:log_level] = v.to_sym },
             :default => :error
 
           option :no_test,
             :short => "-n",
             :long => "--no-test",
-            :description => "Do not run opscode pedant as a part of the omnibus installation"
+            :description => "Do not run opscode pedant as a part of the " \
+              "omnibus installation"
         end
       end
 
@@ -100,7 +109,7 @@ class Chef
         config_val(:platform) == "auto"
       end
 
-      def distro_auto_map(platform, platform_version)
+      def distro_auto_map(platform, _platform_version)
         # NOTE this logic is shared with chef/knife/bootstrap/auto.sh, which is
         #      run on the server side.
         # XXX we don't actually use the platform_version stuff, just included
@@ -120,7 +129,7 @@ class Chef
                    "suse"
                  end
 
-        return construct_distro(normal)
+        construct_distro(normal)
       end
 
       def construct_distro(platform)
@@ -136,7 +145,8 @@ class Chef
       def bootstrap_distro
         return config_val(:distro) if config_val(:distro)
         return determine_platform if config_val(:platform) == "auto"
-        return construct_distro(config_val(:platform))
+
+        construct_distro(config_val(:platform))
       end
 
       def credentials_client
@@ -149,23 +159,32 @@ class Chef
       def determine_platform
         return nil unless bootstrap_auto?
 
-        script = File.binread(File.expand_path("bootstrap/auto.sh", File.dirname(__FILE__)))
+        script = File.binread(
+          File.expand_path("bootstrap/auto.sh", File.dirname(__FILE__))
+        )
 
         # result is expected to be two lines, first being the platform name,
         # second being the platform version.
         result, exit_status = ssh_connection.run_script(script)
 
-        if exit_status != 0 or !result or result.strip.empty?
-          raise "Could not determine the OS running the target for the chef server. Please specify --platform."
+        if exit_status != 0 || !result || result.strip.empty?
+          raise "Could not determine the OS running the target for " \
+            "the chef server. Please specify --platform."
         end
 
-        return distro_auto_map(*result.split(/\n/).compact[0..1])
+        distro_auto_map(*result.split(/\n/).compact[0..1])
       end
 
       def config_val(key)
         key = key.to_sym
-        default_value = options[key] && options[key][:default]
-        config.fetch(key, Chef::Config[:knife].fetch(key, default_value))
+        case
+        when !config[key].nil?
+          config[key]
+        when !Chef::Config[:knife][key].nil?
+          Chef::Config[:knife][key]
+        else
+          options[key] && options[key][:default]
+        end
       end
     end
   end

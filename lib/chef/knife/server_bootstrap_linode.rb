@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2013 Fletcher Nichol
@@ -16,10 +17,11 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_bootstrap_base'
+require "chef/knife/server_bootstrap_base"
 
 class Chef
   class Knife
+    # Provisions a Linode instance and sets up an Open Source Chef Server.
     class ServerBootstrapLinode < Knife
 
       banner "knife server bootstrap linode (options)"
@@ -27,17 +29,17 @@ class Chef
       include Knife::ServerBootstrapBase
 
       deps do
-        require 'knife/server/ssh'
-        require 'knife/server/credentials'
+        require "knife/server/ssh"
+        require "knife/server/credentials"
 
         begin
-          require 'chef/knife/linode_server_create'
-          require 'fog'
+          require "chef/knife/linode_server_create"
+          require "fog"
           Chef::Knife::LinodeServerCreate.load_deps
 
-          current_options = self.options
-          self.options = Chef::Knife::LinodeServerCreate.options.dup
-          self.options.merge!(current_options)
+          current_options = options
+          options = Chef::Knife::LinodeServerCreate.options.dup
+          options.merge!(current_options)
         rescue LoadError => ex
           ui.error [
             "Knife plugin knife-linode could not be loaded.",
@@ -58,9 +60,9 @@ class Chef
       end
 
       def linode_bootstrap
-        ENV['WEBUI_PASSWORD'] = config_val(:webui_password)
-        ENV['AMQP_PASSWORD'] = config_val(:amqp_password)
-        ENV['NO_TEST'] = "1" if config[:no_test]
+        ENV["WEBUI_PASSWORD"] = config_val(:webui_password)
+        ENV["AMQP_PASSWORD"] = config_val(:amqp_password)
+        ENV["NO_TEST"] = "1" if config[:no_test]
         bootstrap = Chef::Knife::LinodeServerCreate.new
         Chef::Knife::LinodeServerCreate.options.keys.each do |attr|
           bootstrap.config[attr] = config_val(attr)
@@ -71,7 +73,7 @@ class Chef
 
       def linode_connection
         @linode_connection ||= Fog::Compute.new(
-          :provider => 'Linode',
+          :provider => "Linode",
           :linode_api_key => config_val(:linode_api_key)
         )
       end

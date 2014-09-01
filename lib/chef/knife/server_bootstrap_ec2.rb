@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -16,10 +17,11 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_bootstrap_base'
+require "chef/knife/server_bootstrap_base"
 
 class Chef
   class Knife
+    # Provisions an EC2 instance and sets up an Open Source Chef Server.
     class ServerBootstrapEc2 < Knife
 
       banner "knife server bootstrap ec2 (options)"
@@ -27,18 +29,18 @@ class Chef
       include Knife::ServerBootstrapBase
 
       deps do
-        require 'knife/server/ssh'
-        require 'knife/server/credentials'
-        require 'knife/server/ec2_security_group'
+        require "knife/server/ssh"
+        require "knife/server/credentials"
+        require "knife/server/ec2_security_group"
 
         begin
-          require 'chef/knife/ec2_server_create'
-          require 'fog'
+          require "chef/knife/ec2_server_create"
+          require "fog"
           Chef::Knife::Ec2ServerCreate.load_deps
 
-          current_options = self.options
-          self.options = Chef::Knife::Ec2ServerCreate.options.dup
-          self.options.merge!(current_options)
+          current_options = options
+          options = Chef::Knife::Ec2ServerCreate.options.dup
+          options.merge!(current_options)
         rescue LoadError => ex
           ui.error [
             "Knife plugin knife-ec2 could not be loaded.",
@@ -55,7 +57,7 @@ class Chef
         :long => "--groups X,Y,Z",
         :description => "The security groups for this server",
         :default => ["infrastructure"],
-        :proc => Proc.new { |groups| groups.split(',') }
+        :proc => proc { |groups| groups.split(",") }
 
       def run
         validate!
@@ -67,9 +69,9 @@ class Chef
       end
 
       def ec2_bootstrap
-        ENV['WEBUI_PASSWORD'] = config_val(:webui_password)
-        ENV['AMQP_PASSWORD'] = config_val(:amqp_password)
-        ENV['NO_TEST'] = "1" if config[:no_test]
+        ENV["WEBUI_PASSWORD"] = config_val(:webui_password)
+        ENV["AMQP_PASSWORD"] = config_val(:amqp_password)
+        ENV["NO_TEST"] = "1" if config[:no_test]
         bootstrap = Chef::Knife::Ec2ServerCreate.new
         Chef::Knife::Ec2ServerCreate.options.keys.each do |attr|
           bootstrap.config[attr] = config_val(attr)
@@ -81,7 +83,7 @@ class Chef
 
       def ec2_connection
         @ec2_connection ||= Fog::Compute.new(
-          :provider => 'AWS',
+          :provider => "AWS",
           :aws_access_key_id => config_val(:aws_access_key_id),
           :aws_secret_access_key => config_val(:aws_secret_access_key),
           :region => config_val(:region)
@@ -91,8 +93,8 @@ class Chef
       def server_dns_name
         server = ec2_connection.servers.find do |s|
           s.state == "running" &&
-            s.tags['Name'] == config_val(:chef_node_name) &&
-            s.tags['Role'] == 'chef_server'
+            s.tags["Name"] == config_val(:chef_node_name) &&
+            s.tags["Role"] == "chef_server"
         end
 
         server && server.dns_name
@@ -112,7 +114,9 @@ class Chef
       end
 
       def config_security_group(name = nil)
-        if config[:security_group_ids].nil? || config[:security_group_ids].empty?
+        ids = config[:security_group_ids]
+
+        if ids.nil? || ids.empty?
           name = config_val(:security_groups).first if name.nil?
           ::Knife::Server::Ec2SecurityGroup.new(ec2_connection, ui).
             configure_chef_server_group(name, :description => "#{name} group")
@@ -122,8 +126,8 @@ class Chef
       end
 
       def bootstrap_tags
-        Hash[Array(config_val(:tags)).map { |t| t.split('=') }].
-          merge({"Role" => "chef_server"}).map { |k,v| "#{k}=#{v}" }
+        Hash[Array(config_val(:tags)).map { |t| t.split("=") }].
+          merge("Role" => "chef_server").map { |k, v| "#{k}=#{v}" }
       end
 
       def ssh_connection

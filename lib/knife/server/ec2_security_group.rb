@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: Fletcher Nichol (<fnichol@nichol.ca>)
 # Copyright:: Copyright (c) 2012 Fletcher Nichol
@@ -18,6 +19,7 @@
 
 module Knife
   module Server
+    # Sets up EC2 security groups for a Chef Server.
     class Ec2SecurityGroup
       def initialize(connection, ui)
         @aws  = connection
@@ -29,10 +31,10 @@ module Knife
 
         ip_permissions.each do |p|
           if permission_exists?(group, p)
-            @ui.msg "Inbound security group rule " +
+            @ui.msg "Inbound security group rule " \
               "#{p[:proto]}(#{p[:from]} -> #{p[:to]}) exists"
           else
-            @ui.msg "Creating inbound security group rule for " +
+            @ui.msg "Creating inbound security group rule for " \
               "#{p[:proto]}(#{p[:from]} -> #{p[:to]})"
             options = permission_options(group, p)
             @aws.authorize_security_group_ingress(group.name, options)
@@ -57,45 +59,46 @@ module Knife
       private
 
       def ip_permissions
-        [ {:proto => 'icmp',  :from => -1,  :to => -1},
-          {:proto => 'tcp',   :from => 0,   :to => 65535},
-          {:proto => 'udp',   :from => 0,   :to => 65535},
-          {:proto => 'tcp',   :from => 22,  :to => 22,  :cidr => '0.0.0.0/0'},
-          {:proto => 'tcp',   :from => 443, :to => 443, :cidr => '0.0.0.0/0'},
-          {:proto => 'tcp',   :from => 444, :to => 444, :cidr => '0.0.0.0/0'},
+        [
+          { :proto => "icmp", :from => -1,  :to => -1 },
+          { :proto => "tcp",  :from => 0,   :to => 65535 },
+          { :proto => "udp",  :from => 0,   :to => 65535 },
+          { :proto => "tcp",  :from => 22,  :to => 22,  :cidr => "0.0.0.0/0" },
+          { :proto => "tcp",  :from => 443, :to => 443, :cidr => "0.0.0.0/0" },
+          { :proto => "tcp",  :from => 444, :to => 444, :cidr => "0.0.0.0/0" }
         ].freeze
       end
 
       def permission_exists?(group, perm)
         group.ip_permissions.find do |p|
-          p['ipProtocol'] == perm[:proto] &&
-            p['fromPort'] == perm[:from] &&
-            p['toPort']   == perm[:to]
+          p["ipProtocol"] == perm[:proto] &&
+            p["fromPort"] == perm[:from] &&
+            p["toPort"]   == perm[:to]
         end
       end
 
-      def permission_options(group, opts)
+      def permission_options(group, opts) # rubocop:disable Metrics/MethodLength
         options = {
-          'IpPermissions' => [
+          "IpPermissions" => [
             {
-              'IpProtocol'  => opts[:proto],
-              'FromPort'    => opts[:from],
-              'ToPort'      => opts[:to]
+              "IpProtocol"  => opts[:proto],
+              "FromPort"    => opts[:from],
+              "ToPort"      => opts[:to]
             }
           ]
         }
 
         if opts[:cidr]
-          options['IpPermissions'].first['IpRanges'] = [
+          options["IpPermissions"].first["IpRanges"] = [
             {
-              'CidrIp'    => opts[:cidr]
+              "CidrIp" => opts[:cidr]
             }
           ]
         else
-          options['IpPermissions'].first['Groups'] = [
+          options["IpPermissions"].first["Groups"] = [
             {
-              'GroupName' => group.name,
-              'UserId'    => group.owner_id
+              "GroupName" => group.name,
+              "UserId"    => group.owner_id
             }
           ]
         end
