@@ -118,6 +118,10 @@ describe Chef::Knife::ServerBootstrapLinode do
 
       expect(ENV["AMQP_PASSWORD"]).to eq("queueitup")
     end
+
+    it "skips config values with nil defaults" do
+      expect(bootstrap.config[:bootstrap_version]).to be_nil
+    end
   end
 
   describe "#linode_connection" do

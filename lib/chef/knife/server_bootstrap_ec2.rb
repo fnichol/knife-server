@@ -69,13 +69,13 @@ class Chef
       end
 
       def ec2_bootstrap
-        ENV["WEBUI_PASSWORD"] = config_val(:webui_password)
-        ENV["AMQP_PASSWORD"] = config_val(:amqp_password)
-        ENV["NO_TEST"] = "1" if config[:no_test]
+        setup_environment
         bootstrap = Chef::Knife::Ec2ServerCreate.new
         Chef::Knife::Ec2ServerCreate.options.keys.each do |attr|
-	        val = config_val(attr)
-	        bootstrap.config[attr] = val unless ((val.is_a?(Array) and val[1].nil?) or val.nil?)
+          val = config_val(attr)
+          next if val.nil?
+
+          bootstrap.config[attr] = val
         end
         bootstrap.config[:tags] = bootstrap_tags
         bootstrap.config[:distro] = bootstrap_distro
@@ -112,6 +112,12 @@ class Chef
           ui.error "Auto platform mode cannot be used with knife-ec2 plugin"
           exit 1
         end
+      end
+
+      def setup_environment
+        ENV["WEBUI_PASSWORD"] = config_val(:webui_password)
+        ENV["AMQP_PASSWORD"] = config_val(:amqp_password)
+        ENV["NO_TEST"] = "1" if config[:no_test]
       end
 
       def config_security_group(name = nil)

@@ -192,6 +192,10 @@ describe Chef::Knife::ServerBootstrapStandalone do
       expect(bootstrap.config[:use_sudo]).to_not be_truthy
     end
 
+    it "skips config values with nil defaults" do
+      expect(bootstrap.config[:bootstrap_version]).to be_nil
+    end
+
     describe "#bootstrap_auto?" do
       it "should be true if set via --platform, even if the distro changes" do
         @knife.config[:platform] = "auto"
@@ -199,7 +203,6 @@ describe Chef::Knife::ServerBootstrapStandalone do
         expect(@knife.send(:bootstrap_auto?)).to be_truthy
       end
     end
-
   end
 
   describe "#run" do

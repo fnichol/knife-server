@@ -137,6 +137,10 @@ describe Chef::Knife::ServerBootstrapEc2 do
 
       expect(ENV["AMQP_PASSWORD"]).to eq("queueitup")
     end
+
+    it "skips config values with nil defaults" do
+      expect(bootstrap.config[:bootstrap_version]).to be_nil
+    end
   end
 
   describe "#ec2_connection" do

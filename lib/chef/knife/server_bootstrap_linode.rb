@@ -65,7 +65,10 @@ class Chef
         ENV["NO_TEST"] = "1" if config[:no_test]
         bootstrap = Chef::Knife::LinodeServerCreate.new
         Chef::Knife::LinodeServerCreate.options.keys.each do |attr|
-          bootstrap.config[attr] = config_val(attr)
+          val = config_val(attr)
+          next if val.nil?
+
+          bootstrap.config[attr] = val
         end
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap
