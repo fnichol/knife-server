@@ -29,10 +29,10 @@ describe Chef::Knife::ServerRestore do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerRestore.new
     @stdout = StringIO.new
-    @knife.ui.stub(:stdout).and_return(@stdout)
-    @knife.ui.stub(:msg)
+    allow(@knife.ui).to receive(:stdout).and_return(@stdout)
+    allow(@knife.ui).to receive(:msg)
     @stderr = StringIO.new
-    @knife.ui.stub(:stderr).and_return(@stderr)
+    allow(@knife.ui).to receive(:stderr).and_return(@stderr)
     @knife.config[:backup_dir] = "/baks"
   end
 
@@ -40,23 +40,23 @@ describe Chef::Knife::ServerRestore do
     let(:rest_client) { double(:post_rest => true) }
 
     before do
-      Chef::Node.any_instance.stub(:save) { true }
-      Chef::Role.any_instance.stub(:save) { true }
-      Chef::Environment.any_instance.stub(:save) { true }
-      Chef::DataBagItem.any_instance.stub(:save) { true }
-      @knife.stub(:rest) { rest_client }
+      allow_any_instance_of(Chef::Node).to receive(:save) { true }
+      allow_any_instance_of(Chef::Role).to receive(:save) { true }
+      allow_any_instance_of(Chef::Environment).to receive(:save) { true }
+      allow_any_instance_of(Chef::DataBagItem).to receive(:save) { true }
+      allow(@knife).to receive(:rest) { rest_client }
     end
 
     it "exists if component type is invalid" do
       @knife.name_args = %w[nodes hovercraft]
 
-      proc { @knife.run }.should raise_error(SystemExit)
+      expect { @knife.run }.to raise_error(SystemExit)
     end
 
     it "exists if backup_dir is missing" do
       @knife.config.delete(:backup_dir)
 
-      proc { @knife.run }.should raise_error(SystemExit)
+      expect { @knife.run }.to raise_error(SystemExit)
     end
 
     context "for nodes" do
@@ -67,13 +67,13 @@ describe Chef::Knife::ServerRestore do
       end
 
       it "sends a message to the ui" do
-        @knife.ui.should_receive(:msg).with(/mynode/)
+        expect(@knife.ui).to receive(:msg).with(/mynode/)
 
         @knife.run
       end
 
       it "saves the node" do
-        Chef::Node.any_instance.should_receive(:save).once
+        expect_any_instance_of(Chef::Node).to receive(:save).once
 
         @knife.run
       end
@@ -87,13 +87,13 @@ describe Chef::Knife::ServerRestore do
       end
 
       it "sends a message to the ui" do
-        @knife.ui.should_receive(:msg).with(/myrole/)
+        expect(@knife.ui).to receive(:msg).with(/myrole/)
 
         @knife.run
       end
 
       it "saves the role" do
-        Chef::Role.any_instance.should_receive(:save).once
+        expect_any_instance_of(Chef::Role).to receive(:save).once
 
         @knife.run
       end
@@ -107,13 +107,13 @@ describe Chef::Knife::ServerRestore do
       end
 
       it "sends a message to the ui" do
-        @knife.ui.should_receive(:msg).with(/myenv/)
+        expect(@knife.ui).to receive(:msg).with(/myenv/)
 
         @knife.run
       end
 
       it "saves the environment" do
-        Chef::Environment.any_instance.should_receive(:save).once
+        expect_any_instance_of(Chef::Environment).to receive(:save).once
 
         @knife.run
       end
@@ -127,27 +127,28 @@ describe Chef::Knife::ServerRestore do
       end
 
       it "sends a message to the ui" do
-        @knife.ui.should_receive(:msg).with(/myitem/)
+        expect(@knife.ui).to receive(:msg).with(/myitem/)
 
         @knife.run
       end
 
       it "creates the data bag" do
-        rest_client.should_receive(:post_rest).with("data", "name" => "mybag")
+        expect(rest_client).to receive(:post_rest).
+          with("data", "name" => "mybag")
 
         @knife.run
       end
 
       it "only creates the data bag once for multiple items" do
         stub_json_data_bag_item!("mybag", "anotheritem")
-        rest_client.should_receive(:post_rest).
+        expect(rest_client).to receive(:post_rest).
           with("data", "name" => "mybag").once
 
         @knife.run
       end
 
       it "saves the data bag item" do
-        Chef::DataBagItem.any_instance.should_receive(:save).once
+        expect_any_instance_of(Chef::DataBagItem).to receive(:save).once
 
         @knife.run
       end
@@ -162,31 +163,32 @@ describe Chef::Knife::ServerRestore do
       end
 
       it "saves nodes" do
-        Chef::Node.any_instance.should_receive(:save)
+        expect_any_instance_of(Chef::Node).to receive(:save)
 
         @knife.run
       end
 
       it "saves roles" do
-        Chef::Role.any_instance.should_receive(:save)
+        expect_any_instance_of(Chef::Role).to receive(:save)
 
         @knife.run
       end
 
       it "saves environments" do
-        Chef::Environment.any_instance.should_receive(:save)
+        expect_any_instance_of(Chef::Environment).to receive(:save)
 
         @knife.run
       end
 
       it "creates data bags" do
-        rest_client.should_receive(:post_rest).with("data", "name" => "bagey")
+        expect(rest_client).to receive(:post_rest).
+          with("data", "name" => "bagey")
 
         @knife.run
       end
 
       it "saves data bag items" do
-        Chef::DataBagItem.any_instance.should_receive(:save)
+        expect_any_instance_of(Chef::DataBagItem).to receive(:save)
 
         @knife.run
       end

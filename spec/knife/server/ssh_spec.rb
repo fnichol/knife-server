@@ -32,11 +32,11 @@ describe Knife::Server::SSH do
   subject { Knife::Server::SSH.new(ssh_options) }
 
   before do
-    Net::SSH.stub(:start).and_yield(ssh_connection)
+    allow(Net::SSH).to receive(:start).and_yield(ssh_connection)
   end
 
   it "passes ssh options to ssh sessions" do
-    Net::SSH.should_receive(:start).with("wadup.example.com", "bob",
+    expect(Net::SSH).to receive(:start).with("wadup.example.com", "bob",
       :keys => "/tmp/whoomp.key", :port => "2222")
 
     subject.exec! "wat"
@@ -44,7 +44,7 @@ describe Knife::Server::SSH do
 
   it "sets default user to root" do
     ssh_options.delete(:user)
-    Net::SSH.should_receive(:start).
+    expect(Net::SSH).to receive(:start).
       with(anything, "root", anything)
 
     Knife::Server::SSH.new(ssh_options).exec!("wat")
@@ -52,7 +52,7 @@ describe Knife::Server::SSH do
 
   it "sets default port to 22" do
     ssh_options.delete(:port)
-    Net::SSH.should_receive(:start).
+    expect(Net::SSH).to receive(:start).
       with(anything, anything, hash_including(:port => "22"))
 
     Knife::Server::SSH.new(ssh_options).exec!("wat")
@@ -60,13 +60,13 @@ describe Knife::Server::SSH do
 
   it "does not add sudo to the command if user is root" do
     ssh_options[:user] = "root"
-    ssh_connection.should_receive(:exec!).with("zappa")
+    expect(ssh_connection).to receive(:exec!).with("zappa")
 
     Knife::Server::SSH.new(ssh_options).exec!("zappa")
   end
 
   it "adds sudo to the command if user is not root" do
-    ssh_connection.should_receive(:exec!).with([
+    expect(ssh_connection).to receive(:exec!).with([
       %{sudo USER=root HOME="$(getent passwd root | cut -d : -f 6)"},
       %{bash -c 'zappa'}
     ].join(" "))
@@ -76,8 +76,8 @@ describe Knife::Server::SSH do
 
   it "returns the output of ssh command" do
     ssh_options[:user] = "root"
-    ssh_connection.stub(:exec!).with("youdoitnow") { "okthen" }
+    allow(ssh_connection).to receive(:exec!).with("youdoitnow") { "okthen" }
 
-    subject.exec!("youdoitnow").should eq("okthen")
+    expect(subject.exec!("youdoitnow")).to eq("okthen")
   end
 end

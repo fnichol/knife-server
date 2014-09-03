@@ -30,9 +30,9 @@ describe Chef::Knife::ServerBootstrapEc2 do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerBootstrapEc2.new
     @stdout = StringIO.new
-    @knife.ui.stub(:stdout).and_return(@stdout)
+    allow(@knife.ui).to receive(:stdout).and_return(@stdout)
     @stderr = StringIO.new
-    @knife.ui.stub(:stderr).and_return(@stderr)
+    allow(@knife.ui).to receive(:stderr).and_return(@stderr)
     @knife.config[:chef_node_name] = "yakky"
     @knife.config[:platform] = "omnibus"
     @knife.config[:ssh_user] = "root"
@@ -65,57 +65,57 @@ describe Chef::Knife::ServerBootstrapEc2 do
     let(:bootstrap) { @knife.ec2_bootstrap }
 
     it "returns an Ec2ServerCreate instance" do
-      bootstrap.should be_a(Chef::Knife::Ec2ServerCreate)
+      expect(bootstrap).to be_a(Chef::Knife::Ec2ServerCreate)
     end
 
     it "configs the bootstrap's chef_node_name" do
-      bootstrap.config[:chef_node_name].should eq("shave.yak")
+      expect(bootstrap.config[:chef_node_name]).to eq("shave.yak")
     end
 
     it "configs the bootstrap's ssh_user" do
-      bootstrap.config[:ssh_user].should eq("jdoe")
+      expect(bootstrap.config[:ssh_user]).to eq("jdoe")
     end
 
     it "configs the bootstrap's ssh_port" do
-      bootstrap.config[:ssh_port].should eq("2222")
+      expect(bootstrap.config[:ssh_port]).to eq("2222")
     end
 
     it "configs the bootstrap's identity_file" do
-      bootstrap.config[:identity_file].should eq("~/.ssh/mykey_dsa")
+      expect(bootstrap.config[:identity_file]).to eq("~/.ssh/mykey_dsa")
     end
 
     it "configs the bootstrap's security_groups" do
-      bootstrap.config[:security_groups].should eq(%w[x y z])
+      expect(bootstrap.config[:security_groups]).to eq(%w[x y z])
     end
 
     it "configs the bootstrap's ebs_size" do
-      bootstrap.config[:ebs_size].should eq("42")
+      expect(bootstrap.config[:ebs_size]).to eq("42")
     end
 
     it "configs the bootstrap's tags" do
-      bootstrap.config[:tags].should include("tag1=val1")
-      bootstrap.config[:tags].should include("tag2=val2")
+      expect(bootstrap.config[:tags]).to include("tag1=val1")
+      expect(bootstrap.config[:tags]).to include("tag2=val2")
     end
 
     it "adds Role=chef_server to the bootstrap's tags" do
-      bootstrap.config[:tags].should include("Role=chef_server")
+      expect(bootstrap.config[:tags]).to include("Role=chef_server")
     end
 
     it "configs the bootstrap's distro" do
-      bootstrap.config[:distro].should eq("distro-praha")
+      expect(bootstrap.config[:distro]).to eq("distro-praha")
     end
 
     it "configs the bootstrap's distro to chef11/omnibus by default" do
       @knife.config.delete(:distro)
 
-      bootstrap.config[:distro].should eq("chef11/omnibus")
+      expect(bootstrap.config[:distro]).to eq("chef11/omnibus")
     end
 
     it "configs the bootstrap's distro value driven off platform value" do
       @knife.config.delete(:distro)
       @knife.config[:platform] = "freebsd"
 
-      bootstrap.config[:distro].should eq("chef11/freebsd")
+      expect(bootstrap.config[:distro]).to eq("chef11/freebsd")
     end
 
     it "configs the distro based on bootstrap_version and platform" do
@@ -123,17 +123,19 @@ describe Chef::Knife::ServerBootstrapEc2 do
       @knife.config[:platform] = "freebsd"
       @knife.config[:bootstrap_version] = "10"
 
-      bootstrap.config[:distro].should eq("chef10/freebsd")
+      expect(bootstrap.config[:distro]).to eq("chef10/freebsd")
     end
 
     it "configs the bootstrap's ENV with the webui password" do
       bootstrap
-      ENV["WEBUI_PASSWORD"].should eq("daweb")
+
+      expect(ENV["WEBUI_PASSWORD"]).to eq("daweb")
     end
 
     it "configs the bootstrap's ENV with the amqp password" do
       bootstrap
-      ENV["AMQP_PASSWORD"].should eq("queueitup")
+
+      expect(ENV["AMQP_PASSWORD"]).to eq("queueitup")
     end
   end
 
@@ -157,7 +159,7 @@ describe Chef::Knife::ServerBootstrapEc2 do
     end
 
     it "constructs a connection" do
-      Fog::Compute.should_receive(:new).with(
+      expect(Fog::Compute).to receive(:new).with(
         :provider => "AWS",
         :aws_access_key_id => "key",
         :aws_secret_access_key => "secret",
@@ -171,12 +173,12 @@ describe Chef::Knife::ServerBootstrapEc2 do
   describe "#server_dns_name" do
     before do
       @knife.config[:chef_node_name] = "shavemy.yak"
-      @knife.stub(:ec2_connection) { connection }
+      allow(@knife).to receive(:ec2_connection) { connection }
     end
 
     context "when server is found" do
       before do
-        connection.stub(:servers) { [server] }
+        expect(connection).to receive(:servers) { [server] }
       end
 
       let(:server) do
@@ -188,22 +190,23 @@ describe Chef::Knife::ServerBootstrapEc2 do
       end
 
       it "returns the provisioned dns name" do
-        @knife.server_dns_name.should eq("blahblah.aws.compute.com")
+        expect(@knife.server_dns_name).to eq("blahblah.aws.compute.com")
       end
 
       it "ignores terminated instances" do
-        server.stub(:state) { "terminated" }
-        @knife.server_dns_name.should be_nil
+        allow(server).to receive(:state) { "terminated" }
+
+        expect(@knife.server_dns_name).to be_nil
       end
     end
 
     context "when server is not found" do
       before do
-        connection.stub(:servers) { [] }
+        allow(connection).to receive(:servers) { [] }
       end
 
       it "returns nil" do
-        @knife.server_dns_name.should be_nil
+        expect(@knife.server_dns_name).to be_nil
       end
     end
   end
@@ -221,15 +224,15 @@ describe Chef::Knife::ServerBootstrapEc2 do
       @knife.config[:validation_key] = "/var/tmp/validation.pem"
       @knife.config[:ssh_port] = "2345"
       @knife.config[:identity_file] = "~/.ssh/mykey_dsa"
-      @knife.stub(:ec2_connection)  { connection }
-      @knife.stub(:server_dns_name)  { "grapes.wrath" }
-      Chef::Knife::Ec2ServerCreate.stub(:new) { bootstrap }
-      Knife::Server::Ec2SecurityGroup.stub(:new) { security_group }
-      Knife::Server::SSH.stub(:new) { ssh }
-      Knife::Server::Credentials.stub(:new) { credentials }
-      security_group.stub(:configure_chef_server_group)
-      credentials.stub(:install_validation_key)
-      credentials.stub(:create_root_client)
+      allow(@knife).to receive(:ec2_connection)  { connection }
+      allow(@knife).to receive(:server_dns_name)  { "grapes.wrath" }
+      allow(Chef::Knife::Ec2ServerCreate).to receive(:new) { bootstrap }
+      allow(Knife::Server::Ec2SecurityGroup).to receive(:new) { security_group }
+      allow(Knife::Server::SSH).to receive(:new) { ssh }
+      allow(Knife::Server::Credentials).to receive(:new) { credentials }
+      allow(security_group).to receive(:configure_chef_server_group)
+      allow(credentials).to receive(:install_validation_key)
+      allow(credentials).to receive(:create_root_client)
     end
 
     after do
@@ -247,61 +250,62 @@ describe Chef::Knife::ServerBootstrapEc2 do
       def @knife.exit(_); end
       @knife.config.delete(:chef_node_name)
 
-      @knife.should_receive(:exit)
+      expect(@knife).to receive(:exit)
       @knife.run
     end
 
     it "configures the ec2 security group" do
-      Knife::Server::Ec2SecurityGroup.should_receive(:new).
+      expect(Knife::Server::Ec2SecurityGroup).to receive(:new).
         with(connection, @knife.ui)
-      security_group.should_receive(:configure_chef_server_group).
+      expect(security_group).to receive(:configure_chef_server_group).
         with("mygroup", :description => "mygroup group")
 
       @knife.run
     end
 
     it "bootstraps an ec2 server" do
-      bootstrap.should_receive(:run)
+      expect(bootstrap).to receive(:run)
+
       @knife.run
     end
 
     it "installs a new validation.pem key from the chef 10 server" do
       @knife.config[:bootstrap_version] = "10"
-      Knife::Server::SSH.should_receive(:new).with(
+      expect(Knife::Server::SSH).to receive(:new).with(
         :host => "grapes.wrath",
         :user => "root",
         :port => "2345",
         :keys => ["~/.ssh/mykey_dsa"]
       )
-      Knife::Server::Credentials.should_receive(:new).
+      expect(Knife::Server::Credentials).to receive(:new).
         with(ssh, "/etc/chef/validation.pem", {})
-      credentials.should_receive(:install_validation_key)
+      expect(credentials).to receive(:install_validation_key)
 
       @knife.run
     end
 
     it "installs a new validation.pem key from the omnibus server" do
-      Knife::Server::SSH.should_receive(:new).with(
+      expect(Knife::Server::SSH).to receive(:new).with(
         :host => "grapes.wrath",
         :user => "root",
         :port => "2345",
         :keys => ["~/.ssh/mykey_dsa"]
       )
-      Knife::Server::Credentials.should_receive(:new).
+      expect(Knife::Server::Credentials).to receive(:new).
         with(ssh, "/etc/chef/validation.pem", :omnibus => true)
-      credentials.should_receive(:install_validation_key)
+      expect(credentials).to receive(:install_validation_key)
 
       @knife.run
     end
 
     it "create a root client key" do
-      credentials.should_receive(:create_root_client)
+      expect(credentials).to receive(:create_root_client)
 
       @knife.run
     end
 
     it "installs a client key" do
-      credentials.should_receive(:install_client_key).
+      expect(credentials).to receive(:install_client_key).
         with("smithers", "/var/tmp/myclientkey.pem")
 
       @knife.run

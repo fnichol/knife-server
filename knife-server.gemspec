@@ -26,7 +26,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "knife-ec2", ">= 0.5.12"
   gem.add_development_dependency "knife-linode"
 
-  gem.add_development_dependency "rspec", "~> 2.13"
+  gem.add_development_dependency "rspec", "~> 3.0"
   gem.add_development_dependency "fakefs", "~> 0.4"
   gem.add_development_dependency "timecop", "~> 0.3"
   gem.add_development_dependency "countloc",  "~> 0.4"

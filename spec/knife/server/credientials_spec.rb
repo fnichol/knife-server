@@ -50,8 +50,9 @@ describe Knife::Server::Credentials do
 
   describe "#install_validation_key" do
     before do
-      ssh.stub(:exec!).with("cat /etc/chef/validation.pem")  { "newkey" }
-      ssh.stub(:exec!).
+      allow(ssh).to receive(:exec!).
+        with("cat /etc/chef/validation.pem")  { "newkey" }
+      allow(ssh).to receive(:exec!).
         with("cat /etc/chef-server/chef-validator.pem")  { "omnibuskey" }
     end
 
@@ -60,34 +61,34 @@ describe Knife::Server::Credentials do
       subject.install_validation_key("old")
       backup = File.open("/tmp/validation.old.pem", "rb") { |f| f.read }
 
-      original.should eq(backup)
+      expect(original).to eq(backup)
     end
 
     it "skips backup file creation if validation key file does not exist" do
       FileUtils.rm_f(validation_key_path)
       subject.install_validation_key("old")
 
-      File.exist?("/tmp/validation.old.pem").should_not be_truthy
+      expect(File.exist?("/tmp/validation.old.pem")).to_not be_truthy
     end
 
     it "copies the key back from the server into validation key file" do
       subject.install_validation_key("old")
       key_str = File.open("/tmp/validation.pem", "rb") { |f| f.read }
 
-      key_str.should eq("newkey")
+      expect(key_str).to eq("newkey")
     end
 
     it "copies the key back from the omnibus server into validation key file" do
       omnibus_subject.install_validation_key("old")
       key_str = File.open("/tmp/validation.pem", "rb") { |f| f.read }
 
-      key_str.should eq("omnibuskey")
+      expect(key_str).to eq("omnibuskey")
     end
   end
 
   describe "#create_root_client" do
     it "creates an initial client key on the server" do
-      ssh.should_receive(:exec!).with([
+      expect(ssh).to receive(:exec!).with([
         "knife configure --initial --server-url http://127.0.0.1:4000",
         %{--user root --repository "" --defaults --yes}
       ].join(" "))
@@ -97,7 +98,7 @@ describe Knife::Server::Credentials do
 
     it "creates an initial user on the omnibus server" do
       ENV["WEBUI_PASSWORD"] = "doowah"
-      ssh.should_receive(:exec!).with([
+      expect(ssh).to receive(:exec!).with([
         %{echo 'doowah' |},
         "knife configure --initial --server-url http://127.0.0.1:8000",
         %{--user root --repository "" --admin-client-name chef-webui},
@@ -113,12 +114,13 @@ describe Knife::Server::Credentials do
 
   describe "#install_client_key" do
     before do
-      ssh.stub(:exec!)
-      ssh.stub(:exec!).with("cat /tmp/chef-client-bob.pem") { "bobkey" }
+      allow(ssh).to receive(:exec!)
+      allow(ssh).to receive(:exec!).
+        with("cat /tmp/chef-client-bob.pem") { "bobkey" }
     end
 
     it "creates a user client key on the server" do
-      ssh.should_receive(:exec!).with([
+      expect(ssh).to receive(:exec!).with([
         "knife client create bob --admin",
         "--file /tmp/chef-client-bob.pem --disable-editing"
       ].join(" "))
@@ -131,25 +133,25 @@ describe Knife::Server::Credentials do
       subject.install_client_key("bob", client_key_path, "old")
       backup = File.open("/tmp/client.old.pem", "rb") { |f| f.read }
 
-      original.should eq(backup)
+      expect(original).to eq(backup)
     end
 
     it "skips backup file creation if client key file does not exist" do
       FileUtils.rm_f(client_key_path)
       subject.install_client_key("bob", client_key_path, "old")
 
-      File.exist?("/tmp/client.old.pem").should_not be_truthy
+      expect(File.exist?("/tmp/client.old.pem")).to_not be_truthy
     end
 
     it "copies the key back from the server into client key file" do
       subject.install_client_key("bob", client_key_path, "old")
       key_str = File.open("/tmp/client.pem", "rb") { |f| f.read }
 
-      key_str.should eq("bobkey")
+      expect(key_str).to eq("bobkey")
     end
 
     it "removes the user client key from the server" do
-      ssh.should_receive(:exec!).with("rm -f /tmp/chef-client-bob.pem")
+      expect(ssh).to receive(:exec!).with("rm -f /tmp/chef-client-bob.pem")
 
       subject.install_client_key("bob", client_key_path)
     end

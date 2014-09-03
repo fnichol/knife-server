@@ -28,10 +28,10 @@ describe Chef::Knife::ServerBackup do
     Chef::Log.logger = Logger.new(StringIO.new)
     @knife = Chef::Knife::ServerBackup.new
     @stdout = StringIO.new
-    @knife.ui.stub(:stdout).and_return(@stdout)
-    @knife.ui.stub(:msg)
+    allow(@knife.ui).to receive(:stdout).and_return(@stdout)
+    allow(@knife.ui).to receive(:msg)
     @stderr = StringIO.new
-    @knife.ui.stub(:stderr).and_return(@stderr)
+    allow(@knife.ui).to receive(:stderr).and_return(@stderr)
     @knife.config[:backup_dir] = "/baks"
 
     Chef::Config[:chef_server_url] = "https://chef.example.com:9876"
@@ -51,7 +51,7 @@ describe Chef::Knife::ServerBackup do
         @knife.config[:backup_dir] = nil
         Chef::Config[:file_backup_path] = "/da/bomb"
 
-        @knife.backup_dir.should eq(
+        expect(@knife.backup_dir).to eq(
           "/da/bomb/chef.example.com_20120102T030405-0000")
       end
     end
@@ -65,22 +65,24 @@ describe Chef::Knife::ServerBackup do
     let(:data_bag_item_list) { Hash["myitem" => "http://p/bags/mybag/myitem"] }
 
     before do
-      Chef::Node.stub(:list) { node_list }
-      Chef::Node.stub(:load).with("mynode") { stub_node("mynode") }
-      Chef::Role.stub(:list) { role_list }
-      Chef::Role.stub(:load).with("myrole") { stub_role("myrole") }
-      Chef::Environment.stub(:list) { env_list }
-      Chef::Environment.stub(:load).with("myenv") { stub_env("myenv") }
-      Chef::DataBag.stub(:list) { data_bag_list }
-      Chef::DataBag.stub(:load).with("mybag") { data_bag_item_list }
-      Chef::DataBagItem.stub(:load).
+      allow(Chef::Node).to receive(:list) { node_list }
+      allow(Chef::Node).to receive(:load).with("mynode") { stub_node("mynode") }
+      allow(Chef::Role).to receive(:list) { role_list }
+      allow(Chef::Role).to receive(:load).with("myrole") { stub_role("myrole") }
+      allow(Chef::Environment).to receive(:list) { env_list }
+      allow(Chef::Environment).to receive(:load).
+        with("myenv") { stub_env("myenv") }
+      allow(Chef::DataBag).to receive(:list) { data_bag_list }
+      allow(Chef::DataBag).to receive(:load).
+        with("mybag") { data_bag_item_list }
+      allow(Chef::DataBagItem).to receive(:load).
         with("mybag", "myitem") { stub_bag_item("mybag", "myitem") }
     end
 
     it "exits if component type is invalid" do
       @knife.name_args = %w[nodes toasterovens]
 
-      -> { @knife.run }.should raise_error SystemExit
+      expect { @knife.run }.to raise_error SystemExit
     end
 
     context "for nodes" do
@@ -89,11 +91,11 @@ describe Chef::Knife::ServerBackup do
       it "creates the backup nodes dir" do
         @knife.run
 
-        File.directory?(["/baks", "nodes"].join("/")).should be_truthy
+        expect(File.directory?(["/baks", "nodes"].join("/"))).to be_truthy
       end
 
       it "sends a message to the ui" do
-        @knife.ui.should_receive(:msg).with(/mynode/)
+        expect(@knife.ui).to receive(:msg).with(/mynode/)
 
         @knife.run
       end
@@ -103,7 +105,7 @@ describe Chef::Knife::ServerBackup do
         json_str = File.open("/baks/nodes/mynode.json", "rb") { |f| f.read }
         json = JSON.parse(json_str, :create_additions => false)
 
-        json["name"].should eq("mynode")
+        expect(json["name"]).to eq("mynode")
       end
     end
 
@@ -112,12 +114,13 @@ describe Chef::Knife::ServerBackup do
 
       it "creates the backup roles dir" do
         @knife.run
+        dir = File.join("/baks", "roles")
 
-        File.directory?(["/baks", "roles"].join("/")).should be_truthy
+        expect(File.directory?(dir)).to be_truthy
       end
 
       it "sends a message to the ui" do
-        @knife.ui.should_receive(:msg).with(/myrole/)
+        expect(@knife.ui).to receive(:msg).with(/myrole/)
 
         @knife.run
       end
@@ -127,7 +130,7 @@ describe Chef::Knife::ServerBackup do
         json_str = File.open("/baks/roles/myrole.json", "rb") { |f| f.read }
         json = JSON.parse(json_str, :create_additions => false)
 
-        json["name"].should eq("myrole")
+        expect(json["name"]).to eq("myrole")
       end
     end
 
@@ -136,12 +139,13 @@ describe Chef::Knife::ServerBackup do
 
       it "creates the backup environments dir" do
         @knife.run
+        dir = File.join("/baks", "environments")
 
-        File.directory?(["/baks", "environments"].join("/")).should be_truthy
+        expect(File.directory?(dir)).to be_truthy
       end
 
       it "sends a message to the ui" do
-        @knife.ui.should_receive(:msg).with(/myenv/)
+        expect(@knife.ui).to receive(:msg).with(/myenv/)
 
         @knife.run
       end
@@ -153,15 +157,19 @@ describe Chef::Knife::ServerBackup do
         end
         json = JSON.parse(json_str, :create_additions => false)
 
-        json["name"].should eq("myenv")
+        expect(json["name"]).to eq("myenv")
       end
 
       it "skips the _default environment" do
-        Chef::Environment.stub(:list) { Hash["_default" => "http://url"] }
-        Chef::Environment.stub(:load).with("_default") { stub_env("_default") }
+        allow(Chef::Environment).to receive(:list) do
+          Hash["_default" => "http://url"]
+        end
+        allow(Chef::Environment).to receive(:load).with("_default") do
+          stub_env("_default")
+        end
         @knife.run
 
-        File.exist?("/baks/environments/_default.json").should_not be_truthy
+        expect(File.exist?("/baks/environments/_default.json")).to_not be_truthy
       end
     end
 
@@ -170,12 +178,13 @@ describe Chef::Knife::ServerBackup do
 
       it "creates the backup data_bags dir" do
         @knife.run
+        dir = File.join("/baks", "data_bags")
 
-        File.directory?(["/baks", "data_bags"].join("/")).should be_truthy
+        expect(File.directory?(dir)).to be_truthy
       end
 
       it "sends messages to the ui" do
-        @knife.ui.should_receive(:msg).with(/myitem/)
+        expect(@knife.ui).to receive(:msg).with(/myitem/)
 
         @knife.run
       end
@@ -187,7 +196,7 @@ describe Chef::Knife::ServerBackup do
         end
         json = JSON.parse(json_str, :create_additions => false)
 
-        json["name"].should eq("data_bag_item_mybag_myitem")
+        expect(json["name"]).to eq("data_bag_item_mybag_myitem")
       end
     end
 
@@ -195,25 +204,25 @@ describe Chef::Knife::ServerBackup do
       it "writes a node file" do
         @knife.run
 
-        File.exist?("/baks/nodes/mynode.json").should be_truthy
+        expect(File.exist?("/baks/nodes/mynode.json")).to be_truthy
       end
 
       it "writes a role file" do
         @knife.run
 
-        File.exist?("/baks/roles/myrole.json").should be_truthy
+        expect(File.exist?("/baks/roles/myrole.json")).to be_truthy
       end
 
       it "writes an environment file" do
         @knife.run
 
-        File.exist?("/baks/environments/myenv.json").should be_truthy
+        expect(File.exist?("/baks/environments/myenv.json")).to be_truthy
       end
 
       it "writes a data bag item file" do
         @knife.run
 
-        File.exist?("/baks/data_bags/mybag/myitem.json").should be_truthy
+        expect(File.exist?("/baks/data_bags/mybag/myitem.json")).to be_truthy
       end
     end
   end
