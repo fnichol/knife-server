@@ -5,7 +5,7 @@
 #
 
 package_url() {
-  local base="http://www.opscode.com/chef/download-server"
+  local base="http://www.getchef.com/chef/download-server"
   if [ -n "$version" ] ; then
     local v="&v=${version}"
   fi
