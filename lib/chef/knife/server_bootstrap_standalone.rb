@@ -36,7 +36,7 @@ class Chef
         Chef::Knife::Bootstrap.load_deps
 
         current_options = options
-        options = Chef::Knife::Bootstrap.options.dup
+        self.options = Chef::Knife::Bootstrap.options.dup
         options.merge!(current_options)
       end
 

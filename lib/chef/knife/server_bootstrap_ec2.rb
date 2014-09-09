@@ -39,7 +39,7 @@ class Chef
           Chef::Knife::Ec2ServerCreate.load_deps
 
           current_options = options
-          options = Chef::Knife::Ec2ServerCreate.options.dup
+          self.options = Chef::Knife::Ec2ServerCreate.options.dup
           options.merge!(current_options)
         rescue LoadError => ex
           ui.error [

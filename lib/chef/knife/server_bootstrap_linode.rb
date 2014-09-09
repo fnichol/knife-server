@@ -38,7 +38,7 @@ class Chef
           Chef::Knife::LinodeServerCreate.load_deps
 
           current_options = options
-          options = Chef::Knife::LinodeServerCreate.options.dup
+          self.options = Chef::Knife::LinodeServerCreate.options.dup
           options.merge!(current_options)
         rescue LoadError => ex
           ui.error [
