@@ -87,6 +87,11 @@ class Chef
             :long => "--no-test",
             :description => "Do not run opscode pedant as a part of the " \
               "omnibus installation"
+
+          option :url,
+            :long => "--url URL",
+            :description => "URL to specfic package release",
+            :proc => proc { |u| Chef::Config[:knife][:server_package_url] = u }
         end
       end
 

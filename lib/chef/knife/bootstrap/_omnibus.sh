@@ -5,12 +5,16 @@
 #
 
 package_url() {
-  local base="http://www.getchef.com/chef/download-server"
-  if [ -n "$version" ] ; then
-    local v="&v=${version}"
-  fi
+  if [ -n "$url" ] ; then
+    echo "$url"
+  else
+    local base="http://www.getchef.com/chef/download-server"
+    if [ -n "$version" ] ; then
+      local v="&v=${version}"
+    fi
 
-  echo "${base}?p=${platform}&pv=${platform_version}&m=${machine}&prerelease=${prerelease}${v}"
+    echo "${base}?p=${platform}&pv=${platform_version}&m=${machine}&prerelease=${prerelease}${v}"
+  fi
 }
 
 # Set the filename for a deb, based on version and machine
