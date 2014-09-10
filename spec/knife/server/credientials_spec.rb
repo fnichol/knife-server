@@ -26,13 +26,19 @@ describe Knife::Server::Credentials do
   let(:ssh)                 { double("SSH Client") }
   let(:validation_key_path) { "/tmp/validation.pem" }
   let(:client_key_path)     { "/tmp/client.pem" }
+  let(:io)                  { StringIO.new }
+
+  let(:options) do
+    { :io => io }
+  end
 
   subject do
-    Knife::Server::Credentials.new(ssh, validation_key_path)
+    Knife::Server::Credentials.new(ssh, validation_key_path, options)
   end
 
   let(:omnibus_subject) do
-    Knife::Server::Credentials.new(ssh, validation_key_path, :omnibus => true)
+    opts = { :omnibus => true }.merge(options)
+    Knife::Server::Credentials.new(ssh, validation_key_path, opts)
   end
 
   before do
@@ -64,6 +70,15 @@ describe Knife::Server::Credentials do
       expect(original).to eq(backup)
     end
 
+    it "prints a message on io object about backing up the key" do
+      subject.install_validation_key("old")
+
+      expect(io.string).to include(
+        "-----> Creating backup of /tmp/validation.pem locally at " \
+        "/tmp/validation.old.pem"
+      )
+    end
+
     it "skips backup file creation if validation key file does not exist" do
       FileUtils.rm_f(validation_key_path)
       subject.install_validation_key("old")
@@ -76,6 +91,15 @@ describe Knife::Server::Credentials do
       key_str = File.open("/tmp/validation.pem", "rb") { |f| f.read }
 
       expect(key_str).to eq("newkey")
+    end
+
+    it "prints a message on io object about creating key file" do
+      subject.install_validation_key("old")
+
+      expect(io.string).to include(
+        "-----> Installing validation private key locally at " \
+        "/tmp/validation.pem"
+      )
     end
 
     it "copies the key back from the omnibus server into validation key file" do
@@ -136,6 +160,15 @@ describe Knife::Server::Credentials do
       expect(original).to eq(backup)
     end
 
+    it "prints a message on io object about backing up the key" do
+      subject.install_client_key("bob", client_key_path, "old")
+
+      expect(io.string).to include(
+        "-----> Creating backup of /tmp/client.pem locally at " \
+        "/tmp/client.old.pem"
+      )
+    end
+
     it "skips backup file creation if client key file does not exist" do
       FileUtils.rm_f(client_key_path)
       subject.install_client_key("bob", client_key_path, "old")
@@ -148,6 +181,14 @@ describe Knife::Server::Credentials do
       key_str = File.open("/tmp/client.pem", "rb") { |f| f.read }
 
       expect(key_str).to eq("bobkey")
+    end
+
+    it "prints a message on io object about creating key file" do
+      subject.install_client_key("bob", client_key_path, "old")
+
+      expect(io.string).to include(
+        "-----> Installing bob private key locally at /tmp/client.pem"
+      )
     end
 
     it "removes the user client key from the server" do

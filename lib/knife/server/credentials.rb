@@ -27,20 +27,23 @@ module Knife
         @ssh = ssh
         @validation_key_path = validation_key_path
         @omnibus = options[:omnibus]
+        @io = options.delete(:io) || $stdout
       end
 
       def install_validation_key(suffix = Time.now.to_i)
-        if File.exist?(@validation_key_path)
-          FileUtils.cp(
-            @validation_key_path,
-            backup_file_path(@validation_key_path, suffix)
-          )
+        dest = @validation_key_path
+        backup = backup_file_path(@validation_key_path, suffix)
+
+        if File.exist?(dest)
+          @io.puts "-----> Creating backup of #{dest} locally at #{backup}"
+          FileUtils.cp(dest, backup)
         end
 
         chef10_key = "/etc/chef/validation.pem"
         omnibus_key = "/etc/chef-server/chef-validator.pem"
 
-        File.open(@validation_key_path, "wb") do |f|
+        @io.puts "-----> Installing validation private key locally at #{dest}"
+        File.open(dest, "wb") do |f|
           f.write(@ssh.exec!("cat #{omnibus? ? omnibus_key : chef10_key}"))
         end
       end
@@ -51,15 +54,16 @@ module Knife
 
       def install_client_key(user, client_key_path, suffix = Time.now.to_i)
         create_user_client(user)
+        dest = client_key_path
+        backup = backup_file_path(client_key_path, suffix)
 
-        if File.exist?(client_key_path)
-          FileUtils.cp(
-            client_key_path,
-            backup_file_path(client_key_path, suffix)
-          )
+        if File.exist?(dest)
+          @io.puts "-----> Creating backup of #{dest} locally at #{backup}"
+          FileUtils.cp(dest, backup)
         end
 
-        File.open(client_key_path, "wb") do |f|
+        @io.puts "-----> Installing #{user} private key locally at #{dest}"
+        File.open(dest, "wb") do |f|
           f.write(@ssh.exec!("cat /tmp/chef-client-#{user}.pem"))
         end
 
