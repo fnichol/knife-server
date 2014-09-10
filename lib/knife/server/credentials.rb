@@ -87,7 +87,7 @@ module Knife
         ].join(" ")
 
         omnibus_cmd = [
-          "knife user create",
+          "/opt/chef-server/embedded/bin/knife user create",
           user,
           "--admin",
           "--file /tmp/chef-client-#{user}.pem",
@@ -112,7 +112,7 @@ module Knife
       def client_omnibus_cmd
         [
           "echo '#{ENV["WEBUI_PASSWORD"]}' |",
-          "knife configure",
+          "/opt/chef-server/embedded/bin/knife configure",
           "--initial",
           "--server-url http://127.0.0.1:8000",
           "--user root",

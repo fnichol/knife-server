@@ -100,7 +100,8 @@ describe Knife::Server::Credentials do
       ENV["WEBUI_PASSWORD"] = "doowah"
       expect(ssh).to receive(:exec!).with([
         %{echo 'doowah' |},
-        "knife configure --initial --server-url http://127.0.0.1:8000",
+        "/opt/chef-server/embedded/bin/knife",
+        "configure --initial --server-url http://127.0.0.1:8000",
         %{--user root --repository "" --admin-client-name chef-webui},
         "--admin-client-key /etc/chef-server/chef-webui.pem",
         "--validation-client-name chef-validator",
