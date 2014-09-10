@@ -55,6 +55,8 @@ tmp_dir=$(mktemp -d -t tmp.XXXXXXXX || echo "/tmp")
 set_hostname_for_${platform}
 download_package
 install_package
+detect_info
+patch_knife_code
 prepare_chef_server_rb
 symlink_binaries
 reconfigure_chef_server

@@ -36,6 +36,16 @@ failed_download() {
   exit 5
 }
 
+is_server_installed() {
+  if [ -f "/opt/chef-server/bin/chef-server-ctl" ] ; then
+    return 0
+  elif [ -f "/opt/opscode/bin/chef-server-ctl" ] ; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 perform_download() {
   case "$1" in
     wget)
@@ -48,8 +58,8 @@ perform_download() {
 }
 
 download_package() {
-  if [ -f "/opt/chef-server/bin/chef-server-ctl" ] ; then
-    info "Chef Server detected in /opt/chef-server, skipping download"
+  if is_server_installed ; then
+    info "Chef Server detected, skipping download"
     return 0
   fi
 
@@ -72,8 +82,8 @@ download_package() {
 }
 
 install_package() {
-  if [ -f "/opt/chef-server/bin/chef-server-ctl" ] ; then
-    info "Chef Server detected in /opt/chef-server, skipping installation"
+  if is_server_installed ; then
+    info "Chef Server detected, skipping installation"
     return 0
   fi
 
@@ -88,6 +98,43 @@ install_package() {
     rm -r "$tmp_dir"
   fi
   banner "Package installed"
+}
+
+detect_info() {
+  if [ -f "/opt/chef-server/bin/chef-server-ctl" ] ; then
+    server_root="/opt/chef-server"
+  elif [ -f "/opt/opscode/bin/chef-server-ctl" ] ; then
+    server_root="/opt/opscode"
+  fi
+
+  info "Chef Server detected in $server_root"
+}
+
+patch_knife_code() {
+  local check="((Gem::Version.new(Chef::VERSION) <= Gem::Version.new(\"11.12.2\")) || (Gem::Version.new(Chef::VERSION) >= Gem::Version.new(\"11.6.0\"))) ? exit(0) : exit(1)"
+  local gems="$server_root/embedded/lib/ruby/gems/1.9.1/gems"
+  local patched="$gems/.patched"
+
+  if [ -f "$patched" ]; then
+    info "Patched knife configure detected, skipping"
+  elif echo "$script" | $server_root/embedded/bin/ruby -r chef/version; then
+    info "Patching knife configure bug (CHEF-5211)"
+    (cd $gems/chef-11.* && cat <<PATCH | tr "#" "\047" | patch -p1)
+diff --git a/lib/chef/knife/configure.rb b/lib/chef/knife/configure.rb
+index 6af3d4e..2c77bf1 100644
+--- a/lib/chef/knife/configure.rb
++++ b/lib/chef/knife/configure.rb
+@@ -153,6 +153,7 @@ EOH
+
+       def guess_servername
+         o = Ohai::System.new
++        o.load_plugins
+         o.require_plugin #os#
+         o.require_plugin #hostname#
+         o[:fqdn] || #localhost#
+PATCH
+    touch "$patched"
+  fi
 }
 
 prepare_chef_server_rb() {
@@ -112,7 +159,7 @@ CHEF_SERVER
 symlink_binaries() {
   for bin in chef-client chef-solo chef-apply knife ohai ; do
     banner "Updating /usr/bin/$bin symlink"
-    ln -snf /opt/chef-server/embedded/bin/$bin /usr/bin/$bin
+    ln -snf $server_root/embedded/bin/$bin /usr/bin/$bin
   done ; unset bin
 }
 
