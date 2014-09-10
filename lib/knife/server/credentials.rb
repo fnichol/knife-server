@@ -121,7 +121,7 @@ module Knife
           "--admin-client-key /etc/chef-server/chef-webui.pem",
           "--validation-client-name chef-validator",
           "--validation-key /etc/chef-server/chef-validator.pem",
-          "--defaults --yes"
+          "--defaults --yes 2>> /tmp/chef-server-install-errors.txt"
         ].join(" ")
       end
     end
