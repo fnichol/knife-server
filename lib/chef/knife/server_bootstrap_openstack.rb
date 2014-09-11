@@ -16,10 +16,11 @@
 # limitations under the License.
 #
 
-require 'chef/knife/server_bootstrap_base'
+require "chef/knife/server_bootstrap_base"
 
 class Chef
   class Knife
+    # Provisions an OpenStack instance and sets up an Open Source Chef Server.
     class ServerBootstrapOpenstack < Knife
 
       banner "knife server bootstrap openstack (options)"
@@ -27,17 +28,17 @@ class Chef
       include Knife::ServerBootstrapBase
 
       deps do
-        require 'knife/server/ssh'
-        require 'knife/server/credentials'
+        require "knife/server/ssh"
+        require "knife/server/credentials"
 
         begin
-          require 'chef/knife/openstack_server_create'
-          require 'fog'
+          require "chef/knife/openstack_server_create"
+          require "fog"
           Chef::Knife::OpenstackServerCreate.load_deps
 
-          current_options = self.options
+          current_options = options
           self.options = Chef::Knife::OpenstackServerCreate.options.dup
-          self.options.merge!(current_options)
+          options.merge!(current_options)
         rescue LoadError => ex
           ui.error [
             "Knife plugin knife-openstack could not be loaded.",
@@ -58,13 +59,15 @@ class Chef
       end
 
       def openstack_bootstrap
-        ENV['WEBUI_PASSWORD'] = config_val(:webui_password)
-        ENV['AMQP_PASSWORD'] = config_val(:amqp_password)
-        ENV['NO_TEST'] = "1" if config[:no_test]
+        ENV["WEBUI_PASSWORD"] = config_val(:webui_password)
+        ENV["AMQP_PASSWORD"] = config_val(:amqp_password)
+        ENV["NO_TEST"] = "1" if config[:no_test]
         bootstrap = Chef::Knife::OpenstackServerCreate.new
         Chef::Knife::OpenstackServerCreate.options.keys.each do |attr|
-          value = config_val(attr)
-          bootstrap.config[attr] = value unless ((value.is_a?(Array) and value[1].nil?) or value.nil?)
+          val = config_val(attr)
+          next if val.nil?
+
+          bootstrap.config[attr] = val
         end
         bootstrap.config[:distro] = bootstrap_distro
         bootstrap
@@ -97,7 +100,7 @@ class Chef
           exit 1
         end
         if config_val(:platform) == "auto"
-          ui.error "Auto platform mode cannot be used with knife-openstack plugin"
+          ui.error "Auto platform cannot be used with knife-openstack plugin"
           exit 1
         end
       end
