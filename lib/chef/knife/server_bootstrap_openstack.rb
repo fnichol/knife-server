@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # Author:: John Bellone (<jbellone@bloomberg.net>)
 # Copyright:: Copyright (c) 2014 Bloomberg Finance L.P.
