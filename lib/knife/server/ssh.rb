@@ -36,17 +36,49 @@ module Knife
       end
 
       def exec!(cmd)
-        if @user == "root"
-          full_cmd = cmd
-        else
-          full_cmd = [USER_SWITCH_COMMAND, %{bash -c '#{cmd}'}].join(" ")
-        end
-
         result = ""
-        Net::SSH.start(@host, @user, @options) do |ssh|
-          result = ssh.exec!(full_cmd)
+        exit_code = nil
+        Net::SSH.start(@host, @user, @options) do |session|
+          exit_code = ssh_session(session, full_cmd(cmd), result)
+        end
+        if exit_code != 0
+          raise "SSH exited with code #{exit_code} for [#{full_cmd(cmd)}]"
         end
         result
+      end
+
+      def full_cmd(cmd)
+        if @user == "root"
+          cmd
+        else
+          [USER_SWITCH_COMMAND, %{bash -c '#{cmd}'}].join(" ")
+        end
+      end
+
+      def ssh_session(session, cmd, result)
+        exit_code = nil
+        session.open_channel do |channel|
+
+          channel.request_pty
+
+          channel.exec(cmd) do |_ch, _success|
+
+            channel.on_data do |_ch, data|
+              result << data
+            end
+
+            channel.on_extended_data do |_ch, _type, data|
+              result << data
+            end
+
+            channel.on_request("exit-status") do |_ch, data|
+              exit_code = data.read_long
+            end
+          end
+        end
+
+        session.loop
+        exit_code
       end
 
       # runs a script on the target host by passing it to the stdin of a sh
