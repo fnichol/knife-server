@@ -60,7 +60,7 @@ knife server bootstrap openstack \
   --openstack-password $OS_PASSWORD \
   --openstack-auth-url $OS_AUTH_URL \
   --ssh-password 'testing1234'
-``
+```
 
 Or maybe you want to try out a Chef Server using [Vagrant][vagrant_site]?
 
