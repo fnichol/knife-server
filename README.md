@@ -46,7 +46,7 @@ knife server bootstrap linode \
   --linode-api-key $LINODE_API_KEY \
   --linode-datacenter 3 \
   --linode-flavor 1 \
-  --linode-image 99 \
+  --linode-image 126 \
   --ssh-password 'testing1234'
 ```
 
