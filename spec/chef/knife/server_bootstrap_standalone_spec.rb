@@ -242,13 +242,13 @@ describe Chef::Knife::ServerBootstrapStandalone do
     let(:credentials) { double.as_null_object }
 
     it "exits if Chef::Config[:node_name] is missing" do
-      Chef::Config.delete(:node_name)
+      Chef::Config[:node_name] = nil
 
       expect { @knife.run }.to raise_error SystemExit
     end
 
     it "exits if Chef::Config[:client_key] is missing" do
-      Chef::Config.delete(:client_key)
+      Chef::Config[:client_key] = nil
 
       expect { @knife.run }.to raise_error SystemExit
     end

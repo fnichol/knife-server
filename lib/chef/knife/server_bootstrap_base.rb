@@ -107,11 +107,11 @@ class Chef
             "the setup instructions at http://fnichol.github.io/knife-server/"
 
         # rubocop:disable Style/DeprecatedHashMethods
-        if !Chef::Config.has_key?(:node_name)
+        if Chef::Config[:node_name].nil?
           ui.error knife_fail.gsub(/{{KEY}}/, "node_name")
           exit 1
         end
-        if !Chef::Config.has_key?(:client_key)
+        if Chef::Config[:client_key].nil?
           ui.error knife_fail.gsub(/{{KEY}}/, "client_key")
           exit 1
         end
