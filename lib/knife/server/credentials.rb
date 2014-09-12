@@ -18,6 +18,7 @@
 #
 
 require "fileutils"
+require "openssl"
 
 module Knife
   module Server
@@ -35,14 +36,14 @@ module Knife
         backup = backup_file_path(@validation_key_path, suffix)
 
         if File.exist?(dest)
-          @io.puts "-----> Creating backup of #{dest} locally at #{backup}"
+          info "Creating backup of #{dest} locally at #{backup}"
           FileUtils.cp(dest, backup)
         end
 
         chef10_key = "/etc/chef/validation.pem"
         omnibus_key = "/etc/chef-server/chef-validator.pem"
 
-        @io.puts "-----> Installing validation private key locally at #{dest}"
+        info "Installing validation private key locally at #{dest}"
         File.open(dest, "wb") do |f|
           f.write(@ssh.exec!("cat #{omnibus? ? omnibus_key : chef10_key}"))
         end
@@ -53,24 +54,20 @@ module Knife
       end
 
       def install_client_key(user, client_key_path, suffix = Time.now.to_i)
-        create_user_client(user)
-        dest = client_key_path
-        backup = backup_file_path(client_key_path, suffix)
-
-        if File.exist?(dest)
-          @io.puts "-----> Creating backup of #{dest} locally at #{backup}"
-          FileUtils.cp(dest, backup)
-        end
-
-        @io.puts "-----> Installing #{user} private key locally at #{dest}"
-        File.open(dest, "wb") do |f|
-          f.write(@ssh.exec!("cat /tmp/chef-client-#{user}.pem"))
+        if omnibus? && File.exist?(client_key_path)
+          use_current_client_key(user, client_key_path)
+        else
+          create_new_client_key(user, client_key_path, suffix)
         end
 
         @ssh.exec!("rm -f /tmp/chef-client-#{user}.pem")
       end
 
       private
+
+      def info(msg)
+        @io.puts "-----> #{msg}"
+      end
 
       def omnibus?
         @omnibus ? true : false
@@ -81,7 +78,7 @@ module Knife
         "#{parts[0]}.#{suffix}.#{parts[2]}"
       end
 
-      def create_user_client(user)
+      def create_user_client(user, is_private = false)
         chef10_cmd = [
           "knife client create",
           user,
@@ -94,7 +91,7 @@ module Knife
           "knife user create",
           user,
           "--admin",
-          "--file /tmp/chef-client-#{user}.pem",
+          "--#{is_private ? "user-key" : "file"} /tmp/chef-client-#{user}.pem",
           "--disable-editing",
           "--password #{ENV["WEBUI_PASSWORD"]}"
         ].join(" ")
@@ -127,6 +124,31 @@ module Knife
           "--validation-key /etc/chef-server/chef-validator.pem",
           "--defaults --yes 2>> /tmp/chef-server-install-errors.txt"
         ].join(" ")
+      end
+
+      def use_current_client_key(user, private_key)
+        public_key = OpenSSL::PKey::RSA.new(
+          File.open(private_key, "rb") { |file| file.read }
+        ).public_key.to_s
+
+        info "Uploading public key for pre-existing #{user} key"
+        @ssh.exec!(%{echo "#{public_key}" > /tmp/chef-client-#{user}.pem})
+        create_user_client(user, true)
+      end
+
+      def create_new_client_key(user, private_key, suffix)
+        create_user_client(user)
+
+        if File.exist?(private_key)
+          backup = backup_file_path(private_key, suffix)
+          info "Creating backup of #{private_key} locally at #{backup}"
+          FileUtils.cp(private_key, backup)
+        end
+
+        info "Installing #{user} private key locally at #{private_key}"
+        File.open(private_key, "wb") do |f|
+          f.write(@ssh.exec!("cat /tmp/chef-client-#{user}.pem"))
+        end
       end
     end
   end
