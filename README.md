@@ -20,7 +20,7 @@ $ knife server bootstrap ec2 \
   --aws-secret-access-key $AWS_SECRET_ACCESS_KEY \
   --region us-east-1 \
   --availability-zone us-east-1b \
-  --image ami-de0d9eb7 \
+  --image ami-d017b2b8 \
   --ssh-user ubuntu \
   --flavor m1.small \
   --ssh-key id_rsa-aws \
