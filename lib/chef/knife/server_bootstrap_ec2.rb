@@ -60,7 +60,7 @@ class Chef
         :proc => proc { |groups| groups.split(",") }
 
       def run
-        validate!
+        super
         config_security_group
         ec2_bootstrap.run
         fetch_validation_key
@@ -104,6 +104,8 @@ class Chef
       private
 
       def validate!
+        super
+
         if config[:chef_node_name].nil?
           ui.error "You did not provide a valid --node-name value."
           exit 1

@@ -52,7 +52,7 @@ class Chef
       end
 
       def run
-        validate!
+        super
         openstack_bootstrap.run
         fetch_validation_key
         create_root_client
@@ -96,6 +96,8 @@ class Chef
       private
 
       def validate!
+        super
+
         if config[:chef_node_name].nil?
           ui.error "You did not provide a valid --node-name value."
           exit 1

@@ -46,7 +46,7 @@ class Chef
         :description => "Hostname or IP address of host to bootstrap"
 
       def run
-        validate!
+        super
         check_ssh_connection
         standalone_bootstrap.run
         fetch_validation_key
@@ -73,6 +73,8 @@ class Chef
       private
 
       def validate!
+        super
+
         if config[:chef_node_name].nil?
           ui.error "You did not provide a valid --node-name value."
           exit 1

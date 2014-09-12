@@ -95,7 +95,28 @@ class Chef
         end
       end
 
+      def run
+        validate!
+      end
+
       private
+
+      def validate!
+        knife_fail = "You did not set {{KEY}} in your knife.rb, which is a " \
+            "required setting. Please generate an initial knife.rb or read " \
+            "the setup instructions at http://fnichol.github.io/knife-server/"
+
+        # rubocop:disable Style/DeprecatedHashMethods
+        if !Chef::Config.has_key?(:node_name)
+          ui.error knife_fail.gsub(/{{KEY}}/, "node_name")
+          exit 1
+        end
+        if !Chef::Config.has_key?(:client_key)
+          ui.error knife_fail.gsub(/{{KEY}}/, "client_key")
+          exit 1
+        end
+        # rubocop:enable Style/DeprecatedHashMethods
+      end
 
       def fetch_validation_key
         credentials_client.install_validation_key

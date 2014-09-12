@@ -250,6 +250,18 @@ describe Chef::Knife::ServerBootstrapEc2 do
     let(:ssh)             { double }
     let(:credentials)     { double.as_null_object }
 
+    it "exits if Chef::Config[:node_name] is missing" do
+      Chef::Config.delete(:node_name)
+
+      expect { @knife.run }.to raise_error SystemExit
+    end
+
+    it "exits if Chef::Config[:client_key] is missing" do
+      Chef::Config.delete(:client_key)
+
+      expect { @knife.run }.to raise_error SystemExit
+    end
+
     it "exits if node_name option is missing" do
       def @knife.exit(_); end
       @knife.config.delete(:chef_node_name)
