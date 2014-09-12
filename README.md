@@ -171,12 +171,12 @@ that if you do not explicitly set `client_key` and `validation_key`, the
 
 For example, you could add lines similar to the following in your user's
 `~/.chef/knife.rb` or your project's `.chef/knife.rb` file (assuming you
-have a directory `"$HOME/.chef.d"` created with `mkdir -p $HOME/.chef.d`):
+have a directory `"$HOME/.chef"` created with `mkdir -p $HOME/.chef`):
 
 ```ruby
 node_name       "gramsay"
-client_key      "#{ENV['HOME']}/.chef.d/gramsay.pem"
-validation_key  "#{ENV['HOME']}/.chef.d/chef-validator.pem"
+client_key      "#{ENV['HOME']}/.chef/gramsay.pem"
+validation_key  "#{ENV['HOME']}/.chef/chef-validator.pem"
 ```
 
 Most options can be passed to the knife subcommands explicitly but this
