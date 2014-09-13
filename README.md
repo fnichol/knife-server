@@ -1,7 +1,9 @@
 # <a name="title"></a> Knife::Server
 
+[![Gem Version](https://badge.fury.io/rb/knife-server.svg)](http://badge.fury.io/rb/knife-server)
 [![Build Status](https://secure.travis-ci.org/fnichol/knife-server.png?branch=master)](http://travis-ci.org/fnichol/knife-server)
 [![Code Climate](https://codeclimate.com/github/fnichol/knife-server.png)](https://codeclimate.com/github/fnichol/knife-server)
+[![Dependency Status](https://gemnasium.com/fnichol/knife-server.png)](https://gemnasium.com/fnichol/knife-server)
 
 An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
 Server on Amazon's EC2, Linode or a standalone server. Backup and restore
