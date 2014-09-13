@@ -1,3 +1,26 @@
+## 1.2.0 / 2014-09-13
+
+### Upstream changes
+
+* Pull request [#48][], issue [#50][]: Fix issue affecting newer Knife/Chef versions dealing with nil default options. ([@dldinternet][], [@fnichol][])
+* Patch specific versions of Chef to fix `knife configure` bug. ([@fnichol][])
+
+### New features
+
+* Pull request [#51][]: Add OpenStack support to knife-server command. ([@johnbellone][])
+* Re-use existing private user key for omnibus bootstraps. ([@fnichol][])
+* Add support for downloading packages from a URL using the `--url` flag. ([@fnichol][])
+
+### Improvements
+
+* Pull request [#43][]: Enable ssh on firewall. ([@taylor][])
+* Add output when backing up and writing keys locally. ([@fnichol][])
+* Issue [#28][]: Shunt stderr/ioctl warnings to a tmp log file for knife configure. ([@fnichol][])
+* Issue [#9][], issue [#10][]: Validate that node_name & client_key are set when running plugins, giving the user a hint that their local knife.rb is not currently set up correctly. ([@fnichol][])
+* Update download URL for Omnibus packages. ([@fnichol][])
+* Update testing dependencies, upgrade to RSpec 3.x, freshen TravisCI build matrix, add style and complexity support. ([@fnichol][])
+
+
 ## 1.1.0 / 2013-07-26
 
 ### New features
@@ -161,18 +184,26 @@ The initial release.
 [#11]: https://github.com/fnichol/knife-server/issues/11
 [#13]: https://github.com/fnichol/knife-server/issues/13
 [#15]: https://github.com/fnichol/knife-server/issues/15
+[#28]: https://github.com/fnichol/knife-server/issues/28
 [#29]: https://github.com/fnichol/knife-server/issues/29
 [#34]: https://github.com/fnichol/knife-server/issues/34
 [#35]: https://github.com/fnichol/knife-server/issues/35
 [#41]: https://github.com/fnichol/knife-server/issues/41
 [#42]: https://github.com/fnichol/knife-server/issues/42
+[#43]: https://github.com/fnichol/knife-server/issues/43
+[#48]: https://github.com/fnichol/knife-server/issues/48
+[#50]: https://github.com/fnichol/knife-server/issues/50
+[#51]: https://github.com/fnichol/knife-server/issues/51
 [@danryan]: https://github.com/danryan
+[@dldinternet]: https://github.com/dldinternet
 [@erikh]: https://github.com/erikh
 [@fnichol]: https://github.com/fnichol
 [@iafonov]: https://github.com/iafonov
+[@johnbellone]: https://github.com/johnbellone
 [@jssjr]: https://github.com/jssjr
 [@ranjib]: https://github.com/ranjib
 [@sawanoboly]: https://github.com/sawanoboly
 [@stormsilver]: https://github.com/stormsilver
+[@taylor]: https://github.com/taylor
 [@wpeterson]: https://github.com/wpeterson
 [@xdissent]: https://github.com/xdissent
