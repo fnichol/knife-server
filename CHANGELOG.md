@@ -1,3 +1,10 @@
+## 1.3.0 / 2014-09-14
+
+### New features
+
+* Pull request [#55][]: Add Digital Ocean support! ([@fnichol][])
+
+
 ## 1.2.0 / 2014-09-13
 
 ### Upstream changes
@@ -194,6 +201,7 @@ The initial release.
 [#48]: https://github.com/fnichol/knife-server/issues/48
 [#50]: https://github.com/fnichol/knife-server/issues/50
 [#51]: https://github.com/fnichol/knife-server/issues/51
+[#55]: https://github.com/fnichol/knife-server/issues/55
 [@danryan]: https://github.com/danryan
 [@dldinternet]: https://github.com/dldinternet
 [@erikh]: https://github.com/erikh
