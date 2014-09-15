@@ -5,10 +5,10 @@
 [![Code Climate](https://codeclimate.com/github/fnichol/knife-server.png)](https://codeclimate.com/github/fnichol/knife-server)
 [![Dependency Status](https://gemnasium.com/fnichol/knife-server.png)](https://gemnasium.com/fnichol/knife-server)
 
-An Opscode Chef knife plugin to manage Chef Servers. Bootstrap a new Chef
-Server on Amazon's EC2, Linode or a standalone server. Backup and restore
-your Chef Server or Hosted Chef's node, role, data bag, and environment JSON
-data.
+An Chef Knife plugin to manage Chef Servers. Bootstrap a new Chef
+Server on Amazon's EC2, Digital Ocean, Linode, OpenStack or a standalone server.
+Backup and restore your Chef Server or Hosted Chef's node, role, data bag, and
+environment JSON data.
 
 ## <a name="usage"></a> Usage
 
@@ -37,6 +37,20 @@ up in a `knife.rb` file, it becomes much shorter:
 $ knife server bootstrap ec2 \
   --node-name chefapalooza.example.com \
   --ssh-user ubuntu
+```
+
+To spin up your Chef Server on [Digital Ocean][do_site]:
+
+```bash
+knife server bootstrap digitalocean \
+  --node-name chefapalooza.example.com \
+  --digital_ocean_client_id $DIGITAL_OCEAN_CLIENT_ID \
+  --digital_ocean_api_key $DIGITAL_OCEAN_API_KEY \
+  --location 3 \
+  --size 63 \
+  --image 5588928 \
+  --ssh-keys $DIGITAL_OCEAN_SSH_KEY_ID \
+  --identity-file ~/.ssh/id_rsa-do
 ```
 
 To spin up your Chef Server on Linode:
@@ -122,12 +136,15 @@ Add this line to your application's Gemfile:
 gem 'knife-server'
 ```
 
-**Note** If you want to use the `bootstrap ec2` or `bootstrap linode`
+**Note** If you want to use the `bootstrap ec2`, `bootstrap digitalocean`,
+`bootstrap linode`, or `bootstrap openstack`
 subcommands you will need to explicitly add this to your Gemfile with:
 
 ```ruby
 gem 'knife-ec2'
+gem 'knife-digital_ocean'
 gem 'knife-linode'
+gem 'knife-openstack'
 ```
 
 Finally execute:
@@ -142,8 +159,9 @@ Or install it yourself as:
 $ gem install knife-server
 ```
 
-(Don't forget a `gem install knife-ec2` or `gem install knife-linode` if using
-the `bootstrap ec2` or `bootstrap linode` subcommands).
+(Don't forget a `gem install knife-ec2`, `gem install knife-digital_ocean`,
+`gem install knife-linode`, or `gem install knife-openstack` if using any
+cloud-specific subcommands).
 
 Next, you **must** set up a [knife.rb configuration](#installation-knife) so
 that the shipped Knife subcommands know where to place and modify key files,
@@ -196,6 +214,10 @@ knife[:flavor] = "t1.micro"
 
 # for linode
 knife[:linode_api_key] = "MY_KEY"
+
+# for digitalocean
+knife[:digital_ocean_client_id] = "MY_CLIENT_ID"
+knife[:digital_ocean_api_key] = "MY_KEY"
 ```
 
 Better yet, why not try a more generic [knife.rb][chef_bootstrap_knife_rb] file
@@ -408,6 +430,21 @@ The resulting set will include:
 * `"Node=#{config[:chef_node_name]}"`
 * `"Role=chef_server"`
 
+### <a name="knife-server-bootstrap-digitalocean"></a> knife server bootstrap digitalocean
+
+**Note:** You must install the [knife-digital_ocean gem][knife-digital_ocean]
+to use this subcommand. This was done to keep the dependencies of this library
+lighter and to make future cloud adapter support easier to add.
+
+Provisions a Digital Ocean droplet and sets up an Open Source Chef Server as
+described [above](#knife-server-bootstrap).
+
+#### Configuration
+
+This subcommand imports all relavent options from the knife-digital_ocean gem.
+For detailed documentation relating to these options, please visit the [project
+page][knife-digital_ocean].
+
 ### <a name="knife-server-bootstrap-linode"></a> knife server bootstrap linode
 
 **Note:** You must install the [knife-linode gem][knife-linode] to use this
@@ -415,15 +452,6 @@ subcommand. This was done to keep the dependencies of this library lighter and
 to make future cloud adapter support easier to add.
 
 Provisions a Linode instance and sets up an Open Source Chef Server as
-described [above](#knife-server-bootstrap).
-
-### <a name="knife-server-bootstrap-openstack"></a> knife server bootstrap openstack
-
-**Note:** You must install the [knife-openstack gem][knife-openstack] to use this
-subcommand. This was done to keep the dependencies of this library lighter and
-to make future cloud adapter support easier to add.
-
-Provisions a Openstack instance and sets up an Open Source Chef Server as
 described [above](#knife-server-bootstrap).
 
 #### Configuration
@@ -479,6 +507,15 @@ generated and echoed in logging output. It is recommended that you specify a
 password so that you know how to connect later.
 
 The default value is a random password.
+
+### <a name="knife-server-bootstrap-openstack"></a> knife server bootstrap openstack
+
+**Note:** You must install the [knife-openstack gem][knife-openstack] to use this
+subcommand. This was done to keep the dependencies of this library lighter and
+to make future cloud adapter support easier to add.
+
+Provisions a Openstack instance and sets up an Open Source Chef Server as
+described [above](#knife-server-bootstrap).
 
 ### <a name="knife-server-bootstrap-standalone"></a> knife server bootstrap standalone
 
@@ -638,11 +675,13 @@ Apache License, Version 2.0 (see [LICENSE][license])
 [backup_restore]:           https://github.com/stevendanna/knife-hacks/blob/master/plugins/backup_restore.rb
 [chef_bootstrap_knife_rb]:  https://github.com/fnichol/chef-bootstrap-repo/blob/master/.chef/knife.rb
 [chef_bootstrap_repo]:      https://github.com/fnichol/chef-bootstrap-repo/
+[do_site]:                  https://www.digitalocean.com/
 [docs_knife]:               http://docs.opscode.com/config_rb_knife.html
 [docs_knife_ec2]:           http://docs.opscode.com/plugin_knife_ec2.html
 [docs_knife_linode]:        http://docs.opscode.com/plugin_knife_linode.html
 [jtimberman]:               https://github.com/jtimberman
 [install_chef]:             http://www.opscode.com/chef/install/
+[knife-digital_ocean]:      https://github.com/rmoriz/knife-digital_ocean
 [knife-ec2]:                https://github.com/opscode/knife-ec2
 [knife-linode]:             https://github.com/opscode/knife-linode
 [knife-openstack]:          https://github.com/opscode/knife-openstack
