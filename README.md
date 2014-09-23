@@ -5,7 +5,7 @@
 [![Code Climate](https://codeclimate.com/github/fnichol/knife-server.png)](https://codeclimate.com/github/fnichol/knife-server)
 [![Dependency Status](https://gemnasium.com/fnichol/knife-server.png)](https://gemnasium.com/fnichol/knife-server)
 
-An Chef Knife plugin to manage Chef Servers. Bootstrap a new Chef
+A Chef Knife plugin to manage Chef Servers. Bootstrap a new Chef
 Server on Amazon's EC2, Digital Ocean, Linode, OpenStack or a standalone server.
 Backup and restore your Chef Server or Hosted Chef's node, role, data bag, and
 environment JSON data.
