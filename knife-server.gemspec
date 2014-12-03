@@ -26,7 +26,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "knife-digital_ocean"
   gem.add_development_dependency "knife-ec2", ">= 0.5.12"
   gem.add_development_dependency "knife-linode"
-  gem.add_development_dependency "knife-openstack"
+  gem.add_development_dependency "knife-openstack", ">= 1.0.0"
 
   gem.add_development_dependency "rspec", "~> 3.0"
   gem.add_development_dependency "fakefs", "~> 0.4"

@@ -63,7 +63,7 @@ describe Chef::Knife::ServerBootstrapOpenstack do
     let(:bootstrap) { @knife.openstack_bootstrap }
 
     it "returns a OpenstackServerCreate instance" do
-      expect(bootstrap).to be_a(Chef::Knife::OpenstackServerCreate)
+      expect(bootstrap).to be_a(Chef::Knife::Cloud::OpenstackServerCreate)
     end
 
     it "configs the bootstrap's chef_node_name" do
@@ -211,7 +211,8 @@ describe Chef::Knife::ServerBootstrapOpenstack do
       @knife.config[:ssh_password] = "booboo"
       allow(@knife).to receive(:openstack_connection)  { connection }
       allow(@knife).to receive(:server_ip_address)  { "11.11.11.13" }
-      allow(Chef::Knife::OpenstackServerCreate).to receive(:new) { bootstrap }
+      allow(Chef::Knife::Cloud::OpenstackServerCreate).
+        to receive(:new) { bootstrap }
       allow(Knife::Server::SSH).to receive(:new) { ssh }
       allow(Knife::Server::Credentials).to receive(:new) { credentials }
       allow(credentials).to receive(:install_validation_key)

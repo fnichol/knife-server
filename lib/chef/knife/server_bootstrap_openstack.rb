@@ -28,6 +28,14 @@ class Chef
 
       include Knife::ServerBootstrapBase
 
+      def self.wrapped_plugin_class
+        Chef::Knife::Cloud::OpenstackServerCreate
+      end
+
+      def wrapped_plugin_class
+        self.class.wrapped_plugin_class
+      end
+
       deps do
         require "knife/server/ssh"
         require "knife/server/credentials"
@@ -35,10 +43,10 @@ class Chef
         begin
           require "chef/knife/openstack_server_create"
           require "fog"
-          Chef::Knife::OpenstackServerCreate.load_deps
+          wrapped_plugin_class.load_deps
 
           current_options = options
-          self.options = Chef::Knife::OpenstackServerCreate.options.dup
+          self.options = wrapped_plugin_class.options.dup
           options.merge!(current_options)
         rescue LoadError => ex
           ui.error [
@@ -63,8 +71,8 @@ class Chef
         ENV["WEBUI_PASSWORD"] = config_val(:webui_password)
         ENV["AMQP_PASSWORD"] = config_val(:amqp_password)
         ENV["NO_TEST"] = "1" if config[:no_test]
-        bootstrap = Chef::Knife::OpenstackServerCreate.new
-        Chef::Knife::OpenstackServerCreate.options.keys.each do |attr|
+        bootstrap = wrapped_plugin_class.new
+        wrapped_plugin_class.options.keys.each do |attr|
           val = config_val(attr)
           next if val.nil?
 
