@@ -16,11 +16,6 @@ group :red_green_refactor, :halt_on_fail => true do
     watch(%r{^spec/spec_helper\.rb})  { "spec" }
   end
 
-  guard :cane do
-    watch(%r{.*\.rb})
-    watch(".cane")
-  end
-
   guard :rubocop, rubocop_opts do
     watch(%r{.+\.rb$})
     watch(%r{(?:.+/)?\.rubocop\.yml$}) { |m| File.dirname(m[0]) }

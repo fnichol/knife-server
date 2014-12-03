@@ -7,7 +7,6 @@ gemspec
 group :guard do
   gem "guard-rspec"
   gem "guard-rubocop"
-  gem "guard-cane"
 end
 
 group :test do
