@@ -3,14 +3,12 @@ language: ruby
 rvm:
   - 2.1
   - 2.0.0
-  - 1.9.3
   - ruby-head
 
 env:
   - "CHEF_VERSION="
   - "CHEF_VERSION='~> 11.14.2'"
   - "CHEF_VERSION='~> 11.4.4'"
-  - "CHEF_VERSION='~> 10.26'"
 
 bundler_args: --without guard
 
