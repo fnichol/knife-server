@@ -44,11 +44,10 @@ To spin up your Chef Server on [Digital Ocean][do_site]:
 ```bash
 knife server bootstrap digitalocean \
   --node-name chefapalooza.example.com \
-  --digital_ocean_client_id $DIGITAL_OCEAN_CLIENT_ID \
-  --digital_ocean_api_key $DIGITAL_OCEAN_API_KEY \
-  --location 3 \
-  --size 63 \
-  --image 5588928 \
+  --digital_ocean_access_token $DIGITAL_OCEAN_ACCESS_TOKEN \
+  --location sfo1 \
+  --size 1gb \
+  --image ubuntu-12-04-x64 \
   --ssh-keys $DIGITAL_OCEAN_SSH_KEY_ID \
   --identity-file ~/.ssh/id_rsa-do
 ```
@@ -216,8 +215,7 @@ knife[:flavor] = "t1.micro"
 knife[:linode_api_key] = "MY_KEY"
 
 # for digitalocean
-knife[:digital_ocean_client_id] = "MY_CLIENT_ID"
-knife[:digital_ocean_api_key] = "MY_KEY"
+knife[:digital_ocean_acceess_token] = "MY_TOKEN"
 ```
 
 Better yet, why not try a more generic [knife.rb][chef_bootstrap_knife_rb] file

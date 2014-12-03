@@ -38,7 +38,7 @@ describe Chef::Knife::ServerBootstrapDigitalocean do
     @knife.config[:ssh_user] = "root"
   end
 
-  let(:connection) { double(Fog::Compute::AWS) }
+  let(:connection) { double(DropletKit::Client) }
 
   describe "#digital_ocean_bootstrap" do
 
@@ -46,8 +46,7 @@ describe Chef::Knife::ServerBootstrapDigitalocean do
       @knife.config[:chef_node_name] = "shave.yak"
       @knife.config[:ssh_user] = "jdoe"
       @knife.config[:identity_file] = "~/.ssh/mykey_dsa"
-      @knife.config[:digital_ocean_client_id] = "clientxyz"
-      @knife.config[:digital_ocean_api_key] = "do123"
+      @knife.config[:digital_ocean_access_token] = "do123"
       @knife.config[:distro] = "distro-praha"
       @knife.config[:webui_password] = "daweb"
       @knife.config[:amqp_password] = "queueitup"
@@ -79,12 +78,8 @@ describe Chef::Knife::ServerBootstrapDigitalocean do
       expect(bootstrap.config[:identity_file]).to eq("~/.ssh/mykey_dsa")
     end
 
-    it "configs the bootstrap's digital_ocean_client_id" do
-      expect(bootstrap.config[:digital_ocean_client_id]).to eq("clientxyz")
-    end
-
-    it "configs the bootstrap's digital_ocean_api_key" do
-      expect(bootstrap.config[:digital_ocean_api_key]).to eq("do123")
+    it "configs the bootstrap's digital_ocean_access_token" do
+      expect(bootstrap.config[:digital_ocean_access_token]).to eq("do123")
     end
 
     it "configs the bootstrap's distro" do
@@ -138,26 +133,21 @@ describe Chef::Knife::ServerBootstrapDigitalocean do
     before do
       @before_config = Hash.new
       @before_config[:knife] = Hash.new
-      [:digital_ocean_client_id, :digital_ocean_api_key].each do |key|
+      [:digital_ocean_access_token].each do |key|
         @before_config[:knife][key] = Chef::Config[:knife][key]
       end
 
-      Chef::Config[:knife][:digital_ocean_client_id] = "client"
-      Chef::Config[:knife][:digital_ocean_api_key] = "api"
+      Chef::Config[:knife][:digital_ocean_access_token] = "api"
     end
 
     after do
-      [:digital_ocean_client_id, :digital_ocean_api_key].each do |key|
+      [:digital_ocean_access_token].each do |key|
         Chef::Config[:knife][key] = @before_config[:knife][key]
       end
     end
 
     it "constructs a connection" do
-      expect(Fog::Compute).to receive(:new).with(
-        :provider => "DigitalOcean",
-        :digitalocean_client_id => "client",
-        :digitalocean_api_key => "api"
-      )
+      expect(DropletKit::Client).to receive(:new).with(:access_token => "api")
 
       @knife.digital_ocean_connection
     end
@@ -165,40 +155,36 @@ describe Chef::Knife::ServerBootstrapDigitalocean do
 
   describe "#server_ip_address" do
 
+    let(:droplets_resource) { double(:all => droplets) }
+
     before do
       @knife.config[:chef_node_name] = "yak"
       allow(@knife).to receive(:digital_ocean_connection) { connection }
+      allow(connection).to receive(:droplets) { droplets_resource }
     end
 
-    context "when server is found" do
-
-      before do
-        allow(connection).to receive(:servers) { [server] }
-      end
+    context "when single server is found" do
 
       let(:server) do
-        double(
-          :name => "yak",
-          :state => "active",
-          :public_ip_address => "10.11.12.13"
-        )
+        double(:name => "yak", :status => "active", :public_ip => "10.11.12.13")
       end
+
+      let(:droplets) { [server] }
 
       it "returns the provisioned ip address" do
         expect(@knife.server_ip_address).to eq("10.11.12.13")
       end
 
       it "ignores terminated instances" do
-        allow(server).to receive(:state) { "foobar" }
+        allow(server).to receive(:status) { "foobar" }
 
         expect(@knife.server_ip_address).to be_nil
       end
     end
 
     context "when server is not found" do
-      before do
-        allow(connection).to receive(:servers) { [] }
-      end
+
+      let(:droplets) { [] }
 
       it "returns nil" do
         expect(@knife.server_ip_address).to be_nil

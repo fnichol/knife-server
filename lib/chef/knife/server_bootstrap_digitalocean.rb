@@ -35,7 +35,7 @@ class Chef
 
         begin
           require "chef/knife/digital_ocean_droplet_create"
-          require "fog"
+          require "droplet_kit"
           Chef::Knife::DigitalOceanDropletCreate.load_deps
 
           current_options = options
@@ -96,19 +96,17 @@ class Chef
       end
 
       def digital_ocean_connection
-        @digital_ocean_connection ||= Fog::Compute.new(
-          :provider => "DigitalOcean",
-          :digitalocean_client_id => config_val(:digital_ocean_client_id),
-          :digitalocean_api_key => config_val(:digital_ocean_api_key)
+        @digital_ocean_connection ||= DropletKit::Client.new(
+          :access_token => config_val(:digital_ocean_access_token)
         )
       end
 
       def server_ip_address
-        server = digital_ocean_connection.servers.find do |s|
-          s.state == "active" && s.name == config_val(:chef_node_name)
+        server = digital_ocean_connection.droplets.all.find do |s|
+          s.status == "active" && s.name == config_val(:chef_node_name)
         end
 
-        server && server.public_ip_address
+        server && server.public_ip
       end
 
       private

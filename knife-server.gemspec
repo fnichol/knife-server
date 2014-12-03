@@ -23,7 +23,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "chef",      ">= 0.10.10"
 
   gem.add_development_dependency "rake"
-  gem.add_development_dependency "knife-digital_ocean"
+  gem.add_development_dependency "knife-digital_ocean", ">= 2.0.0"
   gem.add_development_dependency "knife-ec2", ">= 0.5.12"
   gem.add_development_dependency "knife-linode"
   gem.add_development_dependency "knife-openstack", ">= 1.0.0"
