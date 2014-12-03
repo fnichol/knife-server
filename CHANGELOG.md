@@ -1,3 +1,11 @@
+## 1.4.0 / 2014-12-03
+
+### Upstream changes
+
+* Fix support for knife-openstack >= 1.0.0. ([@fnichol][])
+* Fix support for knife-digtal_ocean >= 2.0.0. ([@fnichol][])
+
+
 ## 1.3.0 / 2014-09-14
 
 ### New features
